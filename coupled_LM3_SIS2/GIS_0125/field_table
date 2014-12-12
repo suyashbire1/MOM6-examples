@@ -1,0 +1,9 @@
+# added by FRE: sphum must be present in atmos
+ "TRACER", "atmos_mod",    "sphum"
+           "longname",     "specific humidity"
+           "units",        "kg/kg" /
+# added by FRE: sphum must be present on land
+ "TRACER", "land_mod",     "sphum"
+           "longname",     "specific humidity"
+           "units",        "kg/kg" /
+
