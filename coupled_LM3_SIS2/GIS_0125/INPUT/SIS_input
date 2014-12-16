@@ -5,7 +5,7 @@
 !********+*********+*********+*********+*********+*********+*********+*
 ! >>> Global coupled ice-ocean SIS2 5 layer ice, 63 layer ocean test case.
 
-DO_ICEBERGS = True              !   If true, use the icebergs module.
+DO_ICEBERGS = False              !   If true, use the icebergs module.
 
 !  Specify properties of the physical domain.
 OMEGA = 7.2921e-5               !   The rotation rate of the earth in s-1.
@@ -66,8 +66,15 @@ ICE_STATS_INTERVAL = 0.25       !    The interval in units of TIMEUNIT between
                                 ! writes of the globally summed ice statistics
                                 ! and conservation checks.
 
+MAXTRUNC = 10000                !   [truncations save_interval-1] default = 0
+                                ! The run will be stopped, and the day set to a very
+                                ! large value if the velocity is truncated more than
+                                ! MAXTRUNC times between  writing ice statistics.
+                                ! Set MAXTRUNC to 0 to stop if there is any truncation
+                                ! of sea ice velocities.
+
 !  Specify the time integration scheme for the ice dynamics.
-DT_ICE_DYNAMICS = 1200.0        ! The time step used for the slow ice dynamics, 
+DT_ICE_DYNAMICS = 0.0        ! The time step used for the slow ice dynamics, 
                                 ! including stepping the continuity equation and
                                 ! interactions between the ice mass field and 
                                 ! velocities, in s.
@@ -82,6 +89,11 @@ DT_RHEOLOGY = 50.0              ! The sub-cycling time step, in s, for iterating
                                 ! the rheology and ice momentum equations. If
                                 ! DT_RHEOLOGY is negative, the time step is set
                                 ! via NSTEPS_DYN.
+
+NSTEPS_ADV = 2                  ! default = 1
+                                ! The number of advective iterations for each slow time
+                                ! step.
+
 PROJECT_ICE_DRAG_VEL = True     ! If true, project forward the ice velocity used in the
                                 ! drag calculation to avoid an instability that can occur
                                 ! when an finite stress is applied to thin ice moving with
@@ -89,7 +101,7 @@ PROJECT_ICE_DRAG_VEL = True     ! If true, project forward the ice velocity used
 ICE_TDAMP_ELASTIC = 1000.0      !   The damping timescale associated with the
                                 ! elastic terms in the sea-ice dynamics.
 
-SIS_TRACER_ADVECTION_SCHEME = "PPM:H3" ! The horizontal transport scheme for
+SIS_TRACER_ADVECTION_SCHEME = "PCM" ! The horizontal transport scheme for
                                 ! tracers.  Valid options include:
                                 !   UPWIND_2D - Non-directionally split upwind
                                 !   PCM    - Directionally split peicewise constant
@@ -139,4 +151,4 @@ ICE_OCEAN_STRESS_STAGGER = "C"  ! default = "B"
                                 ! returned to the coupler.  Valid values include
                                 ! 'A', 'B', or 'C'.
 NUDGE_SEA_ICE = True
-NUDE_SEA_ICE_COEFF = 1.e2
+NUDGE_SEA_ICE_COEFF = 1.e2

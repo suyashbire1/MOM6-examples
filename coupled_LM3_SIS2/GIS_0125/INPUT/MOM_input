@@ -123,9 +123,9 @@ DT_FORCING = 3600.0             !    The time step for changing forcing or
 DT_THERM = 1200.0               !    The thermodynamic time step, in s.  DT_THERM
                                 !  should be an integer multiple of DT and less
                                 !  than or equal to DT_FORCING.
-DT = 600.0                      !    The (baroclinic) dynamics time step, in s.
+DT = 300.0                      !    The (baroclinic) dynamics time step, in s.
                                 !  DT should be an integer fraction of DT_FORCING.
-DT_BT_FILTER = 600.            !    Time-scale for filtering BT variables, in s.
+DT_BT_FILTER = 300.            !    Time-scale for filtering BT variables, in s.
 DTBT = -0.9                     !    The barotropic time step, in s. DTBT is only
                                 !  used with the split explicit time stepping.
                                 !  To set the time step automatically based
@@ -311,7 +311,7 @@ FOX_KEMPER_ML_RESTRAT_COEF = 5.0
                                 !  detailed in the work of Fox-Kemper et al.
 
 !  Specify the scheme for the Coriolis and momentum advection terms.
-CORIOLIS_SCHEME = "SADOURNY75_ENERGY"
+CORIOLIS_SCHEME = "SADOURNY75_ENSTRO"
                                 ! Selects the discretization of Coriolis terms.
                                 ! Possible values are:
                                 !   SADOURNY75_ENERGY - Sadourny's energy
@@ -423,7 +423,7 @@ CORRECT_DENSITY = True          !    If CORRECT_DENSITY is defined, the layer
                                 !  values by the diapycnal mixing.
 
 !  Specify the properties of the surface forcing.
-WIND_STAGGER = "B"              !  "A", "B", or "C" to indicate the
+WIND_STAGGER = "C"              !  "A", "B", or "C" to indicate the
                                 !  staggering of the wind stresses.
 
 !  Specify the properties of the passive tracers.
@@ -453,7 +453,7 @@ BAD_VAL_SSH_MAX = 50.0
 
 DIFFUSE_ML_TO_INTERIOR = True   !    If true, enable epipycnal mixing between the
                                 !  surface boundary layer and the interior.
-ML_KHTR_SCALE = 0.0             !    With Diffuse_ML_interior, this is the ratio
+ML_KHTR_SCALE = 0.2             !    With Diffuse_ML_interior, this is the ratio
                                 !  of the truly horizontal diffusivity in the
                                 !  mixed layer to the epipycnal diffusivity.
                                 !  The default is 1.0.  Nondimensional.
@@ -716,7 +716,7 @@ SMAG_CONST_CHANNEL = 0.15       !   The nondimensional Laplacian Smagorinsky
 DO_RIVERMIX = True              !    If true, apply additional mixing whereever
                                 !  there is runoff, so that it is mixed down to
                                 !  RIVERMIX_DEPTH, if the ocean is that deep.
-RIVERMIX_DEPTH = 40.0           !    The depth to which rivers are mixed, in m,
+RIVERMIX_DEPTH = 20.0           !    The depth to which rivers are mixed, in m,
                                 !  if DO_RIVERMIX is defined.
 HENYEY_IGW_BACKGROUND = True    !    If defined use a latitude-dependent scaling
                                 !  for the near-surface background diffusivity,
