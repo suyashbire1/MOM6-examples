@@ -1,0 +1,1566 @@
+<?xml version="1.0"?>
+<!-- FRE Usage documentation: http://www.gfdl.noaa.gov/fms/fre -->
+<!-- $Id: OM4.xml,v 1.1.2.12.2.6.2.3 2014/05/23 19:37:49 Niki.Zadeh Exp $ -->
+<!DOCTYPE setup [
+<!ENTITY ROOT_LOCATION "/lustre/f1/unswept">
+<!ENTITY ARCH_LOCATION "/lustre/f1">
+]>
+
+<!--
+Quick start guide
+
+module load fre/bronx-7
+fremake -x FLOR2.xml -p ncrc2.intel -t prod MOM6_SIS2_libs_compile -no-link
+fremake -x FLOR2.xml -p ncrc2.intel -t prod MOM6_SIS2_compile
+frerun  -x FLOR2.xml -p ncrc2.intel -t prod FLOR2_LM3_SIS2_baseline0 -r basic 
+# To run fredb after an experiment is finished to manually add it to the database:
+fredb -x FLOR2.xml -p ncrc2.intel -t prod FLOR2_LM3_SIS2_baseline0
+
+-->
+
+<experimentSuite rtsVersion="4" xmlns:xi="http://www.w3.org/2001/XInclude">
+   <property name="RELEASE"      value="ulm"/> <!-- CVS tag for shared source code -->
+   <property name="MOM6_DATE"    value="d00d00100e7cc79130abeadbbda1997f698f6659"/>     <!-- git tag date for MOM6 source code -->
+   <property name="FRE_STEM"     value="$(RELEASE)_mom6_$(MOM6_DATE)"/>
+   <property name="MOM6_GIT_TAG" value="dev/master/$(MOM6_DATE)"/> <!-- git tag for MOM6 source code -->
+   <property name="FRE_VERSION"  value="fre/bronx-9"/>
+
+  <property name="MDBIswitch" value="on"/>                       <!-- on/off switch for MDBI database -->
+
+   <!--Production run properties. Users can modify these according to their need and/or performance analysis-->
+   <property name="PROD_SIMTIME"   value="35"/>
+   <!-- Post-processing start date and chunk lengths -->
+   <property name="PP_START_YEAR"  value="1980"/>
+   <property name="PP_END_YEAR"    value="2014"/>
+   <property name="CHUNK_LENGTH_A" value="5yr"/>
+   <property name="ANALYSIS_SWITCH" value="on"/>
+
+   <property name="PROD_RUNTIME"         value="16:00:00"/>
+   <property name="PROD_SEGTIME"         value="03:30:00"/>
+   <property name="PROD_NPES"            value="384"/>
+   <property name="ATM_PROD_NPES"        value="96"/> 
+   <property name="OCN_PROD_NPES"        value="288"/>
+ 
+<!--
+
+GFDL FAIR USE POLICY
+
+GFDL recognizes the essential nature of collaboration in the scientific
+enterprise, including the importance of novel application and analysis of our
+models. In order to maximize mutual benefit from collaboration, the use of
+experimental GFDL models** should be done in a manner that ensures that
+individuals involved in model development receive proper credit for their
+work; in order to minimize the potential for misapplication of experimental
+models, collaborations should actively engage model developers. Publication of
+results using experimental GFDL models should be done in consultation with
+scientists that participated in the model development. Consultation with GFDL
+model developers should occur before submission of publications based on
+experimental GFDL models, and should include agreement on the appropriate level
+of acknowledgment, co-authorship and participation by the model developers.
+Since experimental models have not been thoroughly vetted, experimental GFDL
+models and their output should be distributed only after consultation with the
+developers of the model. After a GFDL model has been described in a
+peer-reviewed publication it is no longer experimental, and results based on
+the model should cite the publication(s) describing the model.
+ 
+** "Experimental GFDL models" refers to models (e.g., a coupled climate model),
+model components (e.g., parameterization schemes), model configurations (e.g.,
+the specific arrangement and parameter settings of model components) arising
+from model development efforts at GFDL, but whose formulation and configuration
+have not yet been documented in the peer-reviewed literature, as well as outputs
+from integrations with these models.
+-->
+
+
+<!--Users need not change the following properties -->
+<property name="reference_tag"  value="ulm"/> <!-- Reference release tag for existing files in the archives for answer comparison. Used in "REFERENCE" property. -->
+<property name="PROG_MAIN"   value="coupler/coupler_main.o"/>
+<property name="LIBS_ROOT"   value="MOM6_SIS2_libs_compile"/>
+<property name="FMS_LIB_DIR" value="./$(LIBS_ROOT)/$(platform)-$(target)/exec"/>
+
+<!-- The following properties are for testing/debugging purposes and should normally be empty-->
+<property name="MODIFIER"     value=""/>  
+<property name="DEBUGLEVEL"   value=""/>
+
+<setup>
+    <!-- MDBI -->
+    <fmsRelease>fmsversion</fmsRelease>
+    <!-- /MDBI -->
+
+<!-- ncrc platforms -->
+	
+    <platform name="ncrc2.intel">
+      <project>gfdl_o</project>
+      <directory stem="$(FRE_STEM)"/>
+         <directory>
+            <!--unswept locations-->
+            <root>&ROOT_LOCATION;/$USER/$(FRE_STEM)</root>
+            <scripts>&ROOT_LOCATION;/$USER/$(FRE_STEM)$(DEBUGLEVEL)/$(name)/$(platform)-$(target)/scripts</scripts>
+            <state>&ROOT_LOCATION;/$USER/$(FRE_STEM)$(DEBUGLEVEL)/$(name)/$(platform)-$(target)/state</state>
+            <!--swept locations (including the staged archive location)-->
+            <archive>&ARCH_LOCATION;/$USER/$(FRE_STEM)$(DEBUGLEVEL)/$(name)/$(platform)-$(target)</archive>
+            <stdout>&ARCH_LOCATION;/$USER/$(FRE_STEM)$(DEBUGLEVEL)/$(name)/$(platform)-$(target)/stdout</stdout>
+            <work>&ARCH_LOCATION;/$USER/work/$(FRE_STEM)/$FRE_JOBID</work>
+            <ptmp>/lustre/f1/$USER/ptmp</ptmp>
+         </directory>
+ 
+      <csh><![CDATA[
+          source $MODULESHOME/init/csh
+          module use -a /ncrc/home2/fms/local/modulefiles
+          module unload PrgEnv-pgi PrgEnv-pathscale PrgEnv-intel PrgEnv-gnu PrgEnv-cray
+          module unload netcdf fre fre-commands
+          module load PrgEnv-intel
+          module swap intel intel/12.0.5.220
+          module load git
+          module load $(FRE_VERSION)
+          setenv KMP_STACKSIZE 512m
+          setenv NC_BLKSZ 1M
+          alias cpget 'cp \!^ \!^.copy ; \rm -f \!^ ; mv \!^.copy \!^ ; chmod +w \!^ '
+     ]]></csh>
+
+     <property name="NCRC_PLATFORM"    value="$(platform)"/>
+     <property name="GFDL_PLATFORM"    value="gfdl"/>
+     <property name="SGI_FLAGS"        value=""/>
+     <property name="MY_ROOT"          value="$(rootDir)"/>
+     <property name="FMS_ARCHIVE_ROOT" value="$CDATA/fms"/>
+     <property name="F2003_FLAGS"      value="-DINTERNAL_FILE_NML -g -traceback"/> <!-- -g -traceback -->
+     <property name="TAREXT"           value="tar"/>
+     <property name="REFERENCE"        value="/lustre/f1/unswept/Niki.Zadeh/$(reference_tag)/$(name)/$(platform)-$(target)"/>
+     <property name="NB_ROOT"          value="/nbhome/$USER/$(FRE_STEM)$(DEBUGLEVEL)/$(name)"/>
+ 
+    </platform>
+
+    <platform name="ncrc2.default">
+      <xi:include xpointer="xpointer(//setup/platform[@name='ncrc2.intel']/node())" />
+    </platform>
+
+    <platform name="ncrc2.pgi">
+      <project>gfdl_o</project>
+      <directory stem="$(FRE_STEM)"/>
+ 
+      <csh><![CDATA[
+          source $MODULESHOME/init/csh
+          module use -a /ncrc/home2/fms/local/modulefiles
+          module unload PrgEnv-pgi PrgEnv-pathscale PrgEnv-intel PrgEnv-gnu PrgEnv-cray
+          module unload netcdf fre fre-commands
+          module load git
+          module load $(FRE_VERSION)
+          setenv KMP_STACKSIZE 512m
+          setenv NC_BLKSZ 1M
+          alias cpget 'cp \!^ \!^.copy ; \rm -f \!^ ; mv \!^.copy \!^ ; chmod +w \!^ '
+     ]]></csh>
+
+     <property name="NCRC_PLATFORM"    value="$(platform)"/>
+     <property name="GFDL_PLATFORM"    value="gfdl"/>
+     <property name="SGI_FLAGS"        value=""/>
+     <property name="MY_ROOT"          value="$(rootDir)"/>
+     <property name="FMS_ARCHIVE_ROOT" value="$CDATA/fms"/>
+     <property name="F2003_FLAGS"      value="-DINTERNAL_FILE_NML -g -traceback"/> <!-- -g -traceback -->
+     <property name="TAREXT"           value="tar"/>
+     <property name="REFERENCE"        value="/lustre/f1/unswept/Niki.Zadeh/$(reference_tag)/$(name)/$(platform)-$(target)"/>
+     <property name="NB_ROOT"          value="/nbhome/$USER/$(FRE_STEM)$(DEBUGLEVEL)/$(name)"/>
+ 
+    </platform>
+<!-- gfdl platforms -->
+
+    <platform name="gfdl.ncrc2-intel">
+     <property name="NB_ROOT"      value="/nbhome/$USER/$(FRE_STEM)$(DEBUGLEVEL)/$(name)"/>
+     <directory stem="$(FRE_STEM)">
+     <!-- MDBI requires these to be listed in order to show the path under "Platform Environment" -->
+        <archive>$ARCHIVE/$(FRE_STEM)$(DEBUGLEVEL)/$(name)/$(platform)-$(target)</archive>
+        <analysis>$(NB_ROOT)</analysis>
+        <ptmp>/ptmp/$USER</ptmp>
+     <!-- /MDBI -->
+     </directory>
+     <property name="F2003_FLAGS"   value=""/>
+     <property name="TAREXT"        value="tar"/>
+     <property name="GFDL_PLATFORM" value="gfdl"/>
+     <property name="NCRC_PLATFORM" value="ncrc2"/>
+     <property name="MY_ROOT"          value="$(rootDir)"/>
+        <csh><![CDATA[
+           source $MODULESHOME/init/csh
+           module use -a /home/John.Krasting/local/modulefiles
+           module purge
+           module load jpk-analysis/0.0.4
+           module load $(FRE_VERSION)
+           module load git
+           setenv FREVERSION $(FRE_VERSION)           
+           setenv NBROOT $(NB_ROOT)
+           /home/Niki.Zadeh/nnz_tools/bin/verify -m $(MOM6_GIT_TAG) -x user/nnz/ulm 
+         ]]></csh>
+<!--The following are not used, but needed by fre -->
+     <property name="SGI_FLAGS" value=""/>
+     <property name="REFERENCE" value=""/>
+    </platform>
+
+    <platform name="gfdl.ncrc2-default">
+      <xi:include xpointer="xpointer(//setup/platform[@name='gfdl.ncrc2-intel']/node())" />
+    </platform>
+    <platform name="gfdl.default">
+      <xi:include xpointer="xpointer(//setup/platform[@name='gfdl.ncrc2-intel']/node())" />
+    </platform>
+
+</setup>
+
+<property name="MOM6_EXAMPLES"  value="$root/$(LIBS_ROOT)/src/mom6"/>
+<property name="MY_LIBS"        value="$(MY_ROOT)/$(FMS_LIB_DIR)"/>
+
+<experiment name="MOM6_SIS2_libs_compile">
+   <description>
+Compile modules.
+   </description>
+   <component name="fms" paths="shared" includeDir="$root/$(LIBS_ROOT)/src/shared/include">
+        <source versionControl="git" root="git@github.com:MJHarrison-GFDL">
+        <codeBase version="master">NOAA-GFDL-FMS.git</codeBase>
+        <csh>
+	  mv -f NOAA-GFDL-FMS shared
+        </csh>
+        </source>	
+         <compile>
+            <cppDefs>-Duse_libMPI -Duse_netCDF $(F2003_FLAGS)</cppDefs>
+         </compile>
+         <!-- MDBI --> 
+         <description domainName="infrastructure" communityName="FMS" communityVersion="$(RELEASE)" communityGrid="NA"/>
+    </component>
+
+      <component name="mom6" requires="fms" paths="mom6/src/MOM6/config_src/dynamic mom6/src/MOM6/config_src/coupled_driver mom6/src/MOM6/src/*/ mom6/src/MOM6/src/*/*/">
+         <source versionControl="git" root="git@github.com:NOAA-GFDL/MOM6">
+        <codeBase version="$(MOM6_GIT_TAG)"> NULL </codeBase>
+        <csh>
+          git clone -b user/mjh/FLOR2 git@github.com:NOAA-GFDL/MOM6-examples.git  mom6
+          pushd mom6
+          git submodule init src/MOM6 src/SIS2 tools/python/025gridGeneration/MIDAS
+          git clone --recursive git@github.com:NOAA-GFDL/MOM6 src/MOM6
+          git submodule update
+          popd
+
+          pushd mom6
+          set platform_domain = `perl -T -e "use Net::Domain(hostdomain) ; print hostdomain"`
+          if ("${platform_domain}" == "zeus.fairmont.rdhpcs.noaa.gov") then
+            ln -s /scratch2/portfolios/GFDL/gfdlscr/John.Krasting/pdata/gfdl_O/datasets/ .datasets
+          else
+            ln -s /lustre/f1/pdata/gfdl_O/datasets/ .datasets
+          endif
+          popd
+
+          test -e mom6/.datasets
+          if ($status != 0) then
+            echo ""; echo "" ; echo "   WARNING:  .datasets link in MOM6 examples directory is invalid"; echo ""; echo ""
+          endif
+            </csh>
+         </source>
+         <compile>
+            <cppDefs><![CDATA[$(F2003_FLAGS) -D_FILE_VERSION="'"`git-version-string $<`"'"]]> </cppDefs>
+         </compile>
+         <!-- MDBI -->
+         <description domainName="Ocean" communityName="GFDL-MOM6" communityVersion="$(MOM6_GIT_TAG)" communityGrid="Tripolar"/>
+      </component>
+
+<!--Since SIS2 needs ice_param there is a dependency that may damage the compile if bith ice_sis and sis2 try to cvs co ice_params at the same time. We should put ice_param files under sis2 git 
+-->
+      <component name="sis2" paths="mom6/src/SIS2 ice_param" requires="fms mom6" includeDir="$root/$(LIBS_ROOT)/src/mom6/src/MOM6/src/framework" > 
+         <source>
+	   <codeBase version="$(RELEASE)"> ice_param </codeBase> 
+         </source>
+         <compile>
+            <cppDefs><![CDATA[$(F2003_FLAGS) -D_FILE_VERSION="'"`git-version-string $<`"'"]]>
+            </cppDefs>
+         </compile>
+      </component>
+
+      <component name="ice_sis" paths="ice_param ice_sis" requires="fms">   
+         <source>
+            <codeBase version="$(RELEASE)"> ice_param ice_sis </codeBase>
+         </source>
+         <compile>
+            <cppDefs>$(F2003_FLAGS)</cppDefs>
+         </compile>
+         <!-- MDBI -->
+         <description domainName="Sea Ice SIS" communityName="GFDL-SIS" communityVersion="$(RELEASE)" communityGrid="Tripolar"/>
+      </component>
+    <component name="land_lad2" requires="fms" paths="land_lad2">
+      <description domainName="LM3" communityName="land_lad2" communityVersion="$(RELEASE)" communityGrid=""/>
+      <source>
+        <codeBase version="$(RELEASE)"> land_lad2 </codeBase>
+	<csh>
+          #== fix to call astronomy_init ==
+          cvs up -r astronomy_init_mlh_slm_nnz land_lad2/land_model.F90
+          cvs up -r ulm_neg_water_div_20150321_slm_pcm land_lad2/soil/soil.F90
+        </csh>
+      </source>
+      <compile>
+        <cppDefs>$(F2003_FLAGS)</cppDefs>
+
+<!--The following csh block is needed for compiler pre-processors that are not ANSI-compliant, such as pathscale-->
+<csh> <![CDATA[
+cat >Makefile.cpp <<EOF
+CPPDEFS =
+FRETARGET = $(target)
+ifneq (\$(findstring hdf5,\${FRETARGET}),)
+else
+  CPPDEFS += -Duse_LARGEFILE
+endif
+EOF
+echo vpath %.F90 `find $cwd/land_lad2 -type d` >> Makefile.cpp
+echo cpp_land/%.f90: %.F90 >> Makefile.cpp
+/bin/echo -e '\tcpp ${CPPDEFS} -C -v -I shared/include -o $@ $<' >> Makefile.cpp
+mkdir -p cpp_land
+foreach foo ( `find land_lad2 -type f -name \*.F90` )
+  make -f Makefile.cpp cpp_land/$foo:t:r.f90
+end
+find cpp_land -type f -name \*.f90 > pathnames_land_lad2
+        ]]></csh>
+
+      </compile>
+    </component>
+
+      <component name="atmos_null" paths="atmos_null atmos_param" requires="fms">
+         <source>
+            <codeBase version="$(RELEASE)"> atmos_null atmos_param/{monin_obukhov,diag_integral} </codeBase>
+         </source>
+         <!-- MDBI -->
+         <description domainName="NA" communityName="NA" communityVersion="NA" communityGrid="NA"/>
+      </component>
+ </experiment>
+
+ <experiment name="MOM6_SIS2_compile" inherit="MOM6_SIS2_libs_compile">
+      <component paths="shared" name="fms" includeDir="$root/$(LIBS_ROOT)/src/shared/include">
+         <library path="$(MY_LIBS)/fms/libfms.a" headerDir="$(MY_LIBS)/fms"/>
+      </component>
+      <component name="land_lad2" paths="land_lad2" requires="fms">
+         <library path="$(MY_LIBS)/land_lad2/libland_lad2.a" headerDir="$(MY_LIBS)/land_lad2"/>
+      </component>
+      <component name="atmos_null" paths="atmos_null atmos_param" requires="fms">
+          <library path="$(MY_LIBS)/atmos_null/libatmos_null.a" headerDir="$(MY_LIBS)/atmos_null"/>
+      </component>
+      <component paths="mom6" requires="fms" name="mom6">
+         <library path="$(MY_LIBS)/mom6/libmom6.a" headerDir="$(MY_LIBS)/mom6"/>
+      </component> 
+      <component paths="sis2" requires="fms" name="sis2">
+         <library path="$(MY_LIBS)/sis2/libsis2.a" headerDir="$(MY_LIBS)/sis2"/>
+      </component> 
+      <component name="coupler" paths="coupler" requires="fms land_lad2 atmos_null sis2 mom6">
+         <source versionControl="git" root="git@github.com:MJHarrison-GFDL">
+            <codeBase version="master"> coupler.git </codeBase>
+         </source>
+         <compile>
+            <cppDefs><![CDATA[$(F2003_FLAGS) -D_FILE_VERSION="'"`git-version-string $<`"'"]]></cppDefs>
+         </compile>
+         <!-- MDBI -->
+         <description domainName="FMS Coupler" communityName="coupler" communityVersion="$(RELEASE)" communityGrid="NA"/>      </component>
+ </experiment>
+
+ <experiment name="MOM6_SIS_compile" inherit="MOM6_SIS2_libs_compile">
+      <component paths="shared" name="fms" includeDir="$root/$(LIBS_ROOT)/src/shared/include">
+         <library path="$(MY_LIBS)/fms/libfms.a" headerDir="$(MY_LIBS)/fms"/>
+      </component>
+      <component name="land_lad2" paths="land_lad2" requires="fms">
+         <library path="$(MY_LIBS)/land_lad2/libland_lad2.a" headerDir="$(MY_LIBS)/land_lad2"/>
+      </component>
+      <component name="atmos_null" paths="atmos_null atmos_param" requires="fms">
+          <library path="$(MY_LIBS)/atmos_null/libatmos_null.a" headerDir="$(MY_LIBS)/atmos_null"/>
+      </component>
+      <component paths="mom6" requires="fms" name="mom6">
+         <library path="$(MY_LIBS)/mom6/libmom6.a" headerDir="$(MY_LIBS)/mom6"/>
+      </component> 
+      <component paths="ice_sis" requires="fms" name="ice_sis">
+         <library path="$(MY_LIBS)/ice_sis/libice_sis.a" headerDir="$(MY_LIBS)/ice_sis"/>
+      </component> 
+      <component name="coupler" paths="coupler" requires="fms land_lad2 atmos_null ice_sis mom6">
+         <source versionControl="git" root="git@github.com:MJHarrison-GFDL">
+            <codeBase version="master"> coupler.git </codeBase>
+         </source>
+         <compile>
+            <cppDefs><![CDATA[$(F2003_FLAGS) -D_FILE_VERSION="'"`git-version-string $<`"'"]]></cppDefs>
+         </compile>
+         <!-- MDBI -->
+         <description domainName="FMS Coupler" communityName="coupler" communityVersion="$(RELEASE)" communityGrid="NA"/>      </component>
+ </experiment>
+
+ <experiment name="FLOR2_LM3_SIS2_baseline0" inherit="MOM6_SIS2_compile">
+<description communityProject="FLOR2" communityModel="FLOR2_LM3_SIS $(FRE_STEM)" communityModelID="FLOR2_LM3_SIS2" communityExperimentName="$(name)" >
+ FLOR2/SIS2/LM3 test case using MERRA forcing 
+</description>  
+<!-- MDBI --> 
+    <scenario 
+      communityForcing="OILMIP"
+      parentExperimentID="N/A" 
+      parentExperimentRIP="N/A" 
+      startTime="$(PP_START_YEAR)"
+      endTime="$(PP_END_YEAR)" 
+      branch_time="0.0">
+    </scenario>
+<!-- /MDBI -->
+
+     <input>
+      <xi:include xpointer="xpointer(//experiment[@name='FLOR2_domain_decomp']/input/node())"/>
+
+      <!--MOM6 Input datasets-->
+      <xi:include xpointer="xpointer(//experiment[@name='FLOR2_data']/input/node())"/>
+      <!--SIS Input datasets-->
+      <xi:include xpointer="xpointer(//experiment[@name='SIS2_data']/input/node())"/>
+      <!--LM3 Input datasets-->
+      <xi:include xpointer="xpointer(//experiment[@name='LM3_data']/input/node())"/>
+      <!--OM4 gridSpec mosaic datasets-->
+      <xi:include xpointer="xpointer(//experiment[@name='FLOR2_grid']/input/node())"/>
+
+
+      <dataFile label="namelist" target="INPUT/" chksum="" size="" timestamp="">
+        <dataSource site="ncrc">$(MOM6_EXAMPLES)/ice_ocean_SIS2/FLOR2/input.nml</dataSource>
+      </dataFile>
+      <dataFile label="fieldTable" target="INPUT/" chksum="" size="" timestamp="">
+        <dataSource site="ncrc">$(MOM6_EXAMPLES)/ice_ocean_SIS2/FLOR2/field_table</dataSource>
+      </dataFile>
+
+
+
+
+         <dataTable>
+"ATM" , "p_surf"        , "slp"         , "./INPUT/slp.nc"          , "bilinear" ,  1.0
+"ATM" , "p_bot"         , "slp"         , "./INPUT/slp.nc"          , "bilinear" ,  1.0
+"ATM" , "t_bot"         , "t10"    , "./INPUT/t10.nc"     , "bilinear" ,  1.0
+"ATM" , "sphum_bot"     , "q10"    , "./INPUT/q10.nc"     , "bilinear" ,  1.0
+"ATM" , "u_bot"         , "u10"    , "./INPUT/uv10.nc"     , "bicubic" ,  1.0
+"ATM" , "v_bot"         , "v10"    , "./INPUT/uv10.nc"     , "bicubic" ,  1.0
+"ATM" , "z_bot"         , ""            , ""                             , "none" , 10.0
+"ATM" , "gust"          , ""            , ""                             , "none" ,  1.0e-4
+"ATM" , "flux_lw"       , "lwdn"    , "./INPUT/lwdn.nc"     , "bilinear" ,  1.0
+"ATM" , "co2_bot"       , ""        , ""                    , "none"     , 350.0e-6
+"ATM" , "flux_sw_down_total_dir",   "swdn", "./INPUT/swdn.nc", "bilinear" , 0.5
+"ATM" , "flux_sw_down_total_dif",   "swdn", "./INPUT/swdn.nc", "bilinear" , 0.5
+"ATM" , "flux_sw_down_vis_dir", "swdn", "./INPUT/swdn.nc", "bilinear" , 0.5
+"ATM" , "flux_sw_down_vis_dif", "swdn", "./INPUT/swdn.nc", "bilinear" , 0.5
+"ICE" , "sw_flux_vis_dir_dn", "swdn", "./INPUT/swdn.nc", "bilinear" , 0.285
+"ICE" , "sw_flux_vis_dif_dn", "swdn", "./INPUT/swdn.nc", "bilinear" , 0.285
+"ICE" , "sw_flux_nir_dir_dn", "swdn", "./INPUT/swdn.nc", "bilinear" , 0.215
+"ICE" , "sw_flux_nir_dif_dn", "swdn", "./INPUT/swdn.nc", "bilinear" , 0.215
+"ATM" , "lprec"         , "precip"        , "./INPUT/precip.nc"  , "bilinear" ,  1.0
+"ICE" , "dhdt"          , ""            , ""                             , "none"  ,  80.0
+"ICE" , "dedt"          , ""            , ""                             , "none"  ,  2.0e-6
+"ICE" , "drdt"          , ""            , ""                             , "none"  , 10.0
+"ICE", "sic_obs"        , ""         ,""       , "none" ,  0.00
+"ICE", "sit_obs"        , ""         ,""       , "none" ,  0.00
+"ICE", "sst_obs"        , "SST"         ,"./INPUT/sst_ice_clim.nc"       , "bilinear" ,  1.0
+         </dataTable>
+
+         <namelist name="monin_obukhov_nml">
+          stable_option =  2,
+          rich_crit = 10.0,
+          zeta_trans =  0.5
+         </namelist>
+         <namelist name="ocean_rough_nml">
+            rough_scheme = 'beljaars'
+         </namelist>
+         <namelist name="surface_flux_nml">
+	   gust_min = 1.e-10
+         </namelist>
+         <namelist name="ocean_albedo_nml">
+            ocean_albedo_option = 2
+         </namelist>
+         <namelist name="sat_vapor_pres_nml">
+            construct_table_wrt_liq = .true.
+            construct_table_wrt_liq_and_ice = .true.
+         </namelist>
+         <namelist name="coupler_nml">
+            months = $months,
+            days   = $days,
+            current_date = 1980,1,1,0,0,0,
+            calendar = 'JULIAN',
+            dt_cpld = 3600,
+            dt_atmos = 3600,
+            do_atmos = .true.,
+            do_land = .true.,
+            do_ice = .true.,
+            do_ocean = .true.,
+            do_flux = .true.,
+            atmos_npes = $(ATM_PROD_NPES),
+            ocean_npes = $(OCN_PROD_NPES),
+            concurrent = .true.     
+            use_lag_fluxes=.true.    
+            check_stocks = 0         
+         </namelist>
+         <namelist name="diag_manager_nml">
+            max_axes = 100,
+            max_num_axis_sets = 100,
+            max_input_fields = 699
+            max_output_fields = 699
+            mix_snapshot_average_fields=.false.
+         </namelist>
+         <namelist name="flux_exchange_nml">
+            debug_stocks = .FALSE.
+            divert_stocks_report = .TRUE.            
+            do_area_weighted_flux = .FALSE.          
+	    partition_fprec_from_lprec = .TRUE.
+         </namelist>
+         <namelist name="fms_io_nml">
+            fms_netcdf_restart=.true.
+            threading_read='multi'
+            max_files_r = 200
+            max_files_w = 200
+         </namelist>
+         <namelist name="fms_nml">
+            clock_grain='ROUTINE'
+            clock_flags='NONE'
+            domains_stack_size = 5000000
+            stack_size =0
+         </namelist>
+         <namelist name="xgrid_nml">
+            make_exchange_reproduce = .false.
+            interp_method = 'second_order'
+         </namelist>
+         <namelist name="topo_rough_nml">
+         use_topo_rough    = .true.
+         max_topo_rough    = 100.0 
+         topo_rough_factor = 0.01
+         </namelist>
+         <namelist name="topography_nml">
+       topog_file = 'INPUT/navy_topography.data.nc'
+         </namelist>
+
+         <dataFile label="input" target="INPUT/" chksum="" size="" timestamp="">
+            <dataSource site="ncrc">/lustre/f1/pdata/gfdl_O/datasets/GOLD_SIS/riga/INPUT/sst_ice_clim.nc</dataSource>
+         </dataFile>
+
+         <dataFile label="initCond" target="INPUT/" chksum="" size="" timestamp="">
+            <dataSource site="ncrc">/lustre/f1/unswept/Matthew.Harrison/fre/ulm/LM3/LM3.0_FLOR2_C180_pi_spinup_SP1/ncrc2.default-prod/restart/combined/05010101.tar</dataSource>
+         </dataFile>
+
+
+         <diagTable>
+$name
+$baseDate
+# Ocean diagnostics files
+"ocean_daily",            1, "days",   1, "days", "time"
+"ocean_month",            1, "months", 1, "days", "time"
+"ocean_annual",          12, "months", 1, "days", "time"
+"ocean_scalar_month",     1, "months", 1, "days", "time"
+"ocean_scalar_annual",   12, "months", 1, "days", "time"
+"ocean_static",          -1, "months", 1, "days", "time"
+"ocean_monthly_z",        1, "months", 1, "days", "time"
+"ocean_annual_z",        12, "months", 1, "days", "time"
+
+# High-frequency 2d
+ "ocean_model", "SSH",          "ssh",              "ocean_daily", "all", "mean", "none",2
+ "ocean_model", "SSU",          "ssu",              "ocean_daily", "all", "mean", "none",2
+ "ocean_model", "SSV",          "ssv",              "ocean_daily", "all", "mean", "none",2
+ "ocean_model", "SST",          "sst",              "ocean_daily", "all", "mean", "none",2
+ "ocean_model", "SSS",          "sss",              "ocean_daily", "all", "mean", "none",2
+ "ocean_model", "SST",          "sst_max",          "ocean_daily", "all", "max",  "none",2
+ "ocean_model", "SST",          "sst_min",          "ocean_daily", "all", "min",  "none",2
+
+# Monthly averages
+ "ocean_model", "SSH",          "ssh",              "ocean_month", "all", "mean", "none",2
+ "ocean_model", "SSH",          "ssh_pow2",         "ocean_month", "all", "pow2", "none",2
+ "ocean_model", "SST",          "sst_max",          "ocean_month", "all", "max",  "none",2
+ "ocean_model", "SST",          "sst_min",          "ocean_month", "all", "min",  "none",2
+ "ocean_model", "SST",          "sst_pow2",         "ocean_month", "all", "pow2", "none",2
+ "ocean_model", "KPP_OBLdepth", "KPP_OBLdepth",     "ocean_month", "all", "mean", "none",2
+ "ocean_model", "KPP_OBLdepth", "KPP_OBLdepth_max", "ocean_month", "all", "max",  "none",2
+ "ocean_model", "KPP_OBLdepth", "KPP_OBLdepth_min", "ocean_month", "all", "min",  "none",2
+ "ocean_model", "MLD_003",      "MLD_003",          "ocean_month", "all", "mean", "none",2
+ "ocean_model", "subML_N2",     "subML_N2",         "ocean_month", "all", "mean", "none",2
+ "ocean_model", "temp",         "temp",             "ocean_month", "all", "mean", "none",2
+ "ocean_model", "salt",         "salt",             "ocean_month", "all", "mean", "none",2
+ "ocean_model", "u",            "u",                "ocean_month", "all", "mean", "none",2
+ "ocean_model", "v",            "v",                "ocean_month", "all", "mean", "none",2
+ "ocean_model", "Kd_interface", "Kd_interface",     "ocean_month", "all", "mean", "none",2
+ "ocean_model", "Kd_shear",     "Kd_shear",         "ocean_month", "all", "mean", "none",2
+ "ocean_model", "Kd_itides",    "Kd_itides",        "ocean_month", "all", "mean", "none",2
+ "ocean_model", "KPP_Kheat",    "KPP_Kheat",        "ocean_month", "all", "mean", "none",2
+ "ocean_model", "pso",          "pso",              "ocean_month", "all", "mean", "none",2
+ "ocean_model", "speed",        "speed",            "ocean_month", "all", "mean", "none",2
+ "ocean_model", "speed",        "speed_pow2",       "ocean_month", "all", "pow2", "none",2
+
+# Monthly surface forcing (mechanical)
+ "ocean_model", "taux",   "taux",   "ocean_month", "all", "mean", "none",2
+ "ocean_model", "tauy",   "tauy",   "ocean_month", "all", "mean", "none",2
+ "ocean_model", "ustar",  "ustar",  "ocean_month", "all", "mean", "none",2
+ "ocean_model", "p_surf", "p_surf", "ocean_month", "all", "mean", "none",2
+# Monthly surface forcing (mass)
+ "ocean_model", "PRCmE",       "PRCmE",       "ocean_month", "all", "mean", "none",2
+ "ocean_model", "net_massin",  "net_massin",  "ocean_month", "all", "mean", "none",2
+ "ocean_model", "net_massout", "net_massout", "ocean_month", "all", "mean", "none",2
+ "ocean_model", "evap",        "evap",        "ocean_month", "all", "mean", "none",2
+ "ocean_model", "lrunoff",     "lrunoff",     "ocean_month", "all", "mean", "none",2
+ "ocean_model", "frunoff",     "frunoff",     "ocean_month", "all", "mean", "none",2
+ "ocean_model", "lprec",       "lprec",       "ocean_month", "all", "mean", "none",2
+ "ocean_model", "fprec",       "fprec",       "ocean_month", "all", "mean", "none",2
+# Monthly surface forcing (heat)
+ "ocean_model", "net_heat_coupler",       "net_heat_coupler",       "ocean_month", "all", "mean", "none",2
+ "ocean_model", "net_heat_surface",       "net_heat_surface",       "ocean_month", "all", "mean", "none",2
+ "ocean_model", "heat_content_massin",    "heat_content_massin",    "ocean_month", "all", "mean", "none",2
+ "ocean_model", "heat_content_massout",   "heat_content_massout",   "ocean_month", "all", "mean", "none",2
+ "ocean_model", "heat_content_surfwater", "heat_content_surfwater", "ocean_month", "all", "mean", "none",2
+ "ocean_model", "heat_content_lprec",     "heat_content_lprec",     "ocean_month", "all", "mean", "none",2
+ "ocean_model", "heat_content_fprec",     "heat_content_fprec",     "ocean_month", "all", "mean", "none",2
+ "ocean_model", "heat_content_lrunoff",   "heat_content_lrunoff",   "ocean_month", "all", "mean", "none",2
+ "ocean_model", "heat_content_frunoff",   "heat_content_frunoff",   "ocean_month", "all", "mean", "none",2
+ "ocean_model", "heat_content_cond",      "heat_content_cond",      "ocean_month", "all", "mean", "none",2
+ "ocean_model", "SW",                     "SW",                     "ocean_month", "all", "mean", "none",2
+ "ocean_model", "LwLatSens",              "LwLatSens",              "ocean_month", "all", "mean", "none",2
+ "ocean_model", "Heat_PmE",               "Heat_PmE",               "ocean_month", "all", "mean", "none",2
+ "ocean_model", "frazil",                 "frazil",                 "ocean_month", "all", "mean", "none",2
+#"ocean_model", "internal_heat",          "internal_heat",          "ocean_month", "all", "mean", "none",2
+# Monthly surface forcing (salt)
+ "ocean_model", "salt_flux", "salt_flux", "ocean_month", "all", "mean", "none",2
+
+# Monthly scalars
+ "ocean_model", "SST_global",       "SST_global",       "ocean_scalar_month", "all", "mean", "none",2
+ "ocean_model", "SSS_global",       "SSS_global",       "ocean_scalar_month", "all", "mean", "none",2
+ "ocean_model", "temp_global",      "temp_global",      "ocean_scalar_month", "all", "mean", "none",2
+ "ocean_model", "salt_global",      "salt_global",      "ocean_scalar_month", "all", "mean", "none",2
+
+# Annual averages
+ "ocean_model", "e",                "e",                "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "h",                "h",                "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "temp",             "temp",             "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "salt",             "salt",             "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "u",                "u",                "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "v",                "v",                "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "Kd_interface",     "Kd_interface",     "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "Kd_shear",         "Kd_shear",         "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "Kd_itides",        "Kd_itides",        "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "KPP_Kheat",        "KPP_Kheat",        "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "MLD_003",          "MLD_003_min",      "ocean_annual", "all", "min",  "none",2
+ "ocean_model", "MLD_003",          "MLD_003_max",      "ocean_annual", "all", "max",  "none",2
+ "ocean_model", "uh",               "uh",               "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "vh",               "vh",               "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "uhml",             "uhml",             "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "vhml",             "vhml",             "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "T_ady",            "T_ady",            "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "S_ady",            "S_ady",            "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "TKE_tidal",        "TKE_tidal",        "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "TKE_itidal",       "TKE_itidal",       "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "taux",             "taux",             "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "tauy",             "tauy",             "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "ustar",            "ustar",            "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "PRCmE",            "PRCmE",            "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "SW",               "SW",               "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "net_heat_surface", "net_heat_surface", "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "LwLatSens",        "LwLatSens",        "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "p_surf",           "p_surf",           "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "salt_flux",        "salt_flux",        "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "age",              "age",              "ocean_annual", "all", "mean", "none",2
+#"ocean_model", "vintage",          "vintage",          "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "MEKE_Ue",          "MEKE_Ue",          "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "MEKE_Le",          "MEKE_Le",          "ocean_annual", "all", "mean", "none",2
+ "ocean_model", "MEKE_KH",          "MEKE_KH",          "ocean_annual", "all", "mean", "none",2
+
+# Annual scalars
+ "ocean_model", "SST_global",       "SST_global",       "ocean_scalar_annual", "all", "mean", "none",2
+ "ocean_model", "SSS_global",       "SSS_global",       "ocean_scalar_annual", "all", "mean", "none",2
+ "ocean_model", "temp_global",      "temp_global",      "ocean_scalar_annual", "all", "mean", "none",2
+ "ocean_model", "salt_global",      "salt_global",      "ocean_scalar_annual", "all", "mean", "none",2
+
+# Z diagnostics
+ "ocean_model_z", "thetao",         "thetao",           "ocean_annual_z", "all", "mean", "none",2
+ "ocean_model_z", "so",             "so",               "ocean_annual_z", "all", "mean", "none",2
+ "ocean_model_z", "age",            "age",              "ocean_annual_z", "all", "mean", "none",2
+ "ocean_model_z", "uo",             "uo",               "ocean_annual_z", "all", "mean", "none",2
+ "ocean_model_z", "vo",             "vo",               "ocean_annual_z", "all", "mean", "none",2
+ "ocean_model_z", "uh",             "uh",               "ocean_annual_z", "all", "mean", "none",2
+ "ocean_model_z", "vh",             "vh",               "ocean_annual_z", "all", "mean", "none",2
+ "ocean_model_z", "N2",             "N2",               "ocean_annual_z", "all", "mean", "none",2
+ "ocean_model_z", "Kd",             "Kd",               "ocean_annual_z", "all", "mean", "none",2
+ "ocean_model_z", "Kd_itides",      "Kd_itides",        "ocean_annual_z", "all", "mean", "none",2
+
+ "ocean_model_z", "thetao",         "thetao",           "ocean_monthly_z", "all", "mean", "none",2
+ "ocean_model_z", "so",             "so",               "ocean_monthly_z", "all", "mean", "none",2
+ "ocean_model_z", "uo",             "uo",               "ocean_monthly_z", "all", "mean", "none",2
+ "ocean_model_z", "vo",             "vo",               "ocean_monthly_z", "all", "mean", "none",2
+
+# Static geometry data
+ "ocean_model", "geolon",      "geolon",      "ocean_static", "all", "none", "none", 2
+ "ocean_model", "geolat",      "geolat",      "ocean_static", "all", "none", "none", 2
+ "ocean_model", "geolon_c",    "geolon_c",    "ocean_static", "all", "none", "none", 2
+ "ocean_model", "geolat_c",    "geolat_c",    "ocean_static", "all", "none", "none", 2
+ "ocean_model", "geolon_u",    "geolon_u",    "ocean_static", "all", "none", "none", 2
+ "ocean_model", "geolat_u",    "geolat_u",    "ocean_static", "all", "none", "none", 2
+ "ocean_model", "geolon_v",    "geolon_v",    "ocean_static", "all", "none", "none", 2
+ "ocean_model", "geolat_v",    "geolat_v",    "ocean_static", "all", "none", "none", 2
+ "ocean_model", "area_t",      "area_t",      "ocean_static", "all", "none", "none", 2
+ "ocean_model", "depth_ocean", "depth_ocean", "ocean_static", "all", "none", "none", 2
+ "ocean_model", "wet",         "wet",         "ocean_static", "all", "none", "none", 2
+ "ocean_model", "wet_c",       "wet_c",       "ocean_static", "all", "none", "none", 2
+ "ocean_model", "wet_u",       "wet_u",       "ocean_static", "all", "none", "none", 2
+ "ocean_model", "wet_v",       "wet_v",       "ocean_static", "all", "none", "none", 2
+ "ocean_model", "deptho",      "deptho",      "ocean_static", "all", "none", "none", 2
+
+"ice_month",              1,  "months", 1, "days", "time",
+"ice_daily",              1,  "days", 1, "days", "time",
+"land_static",     -1,  "months", 1, "days", "time"
+"land_month",       1,  "months", 1, "days", "time",
+"land_daily",      24,  "hours",  1, "days", "time",
+"flux_daily",              1,  "days", 1, "days", "time",
+
+#
+#================
+# ICE DIAGNOSTICS
+#================
+
+ "ice_model", "CALVING",    "CALVING",    "ice_month", "all", .true., "none", 2
+ "ice_model", "CN",         "CN",         "ice_month", "all", .true., "none", 2
+ "ice_model", "HI",         "HI",         "ice_month", "all", .true., "none", 2
+ "ice_model", "RUNOFF",     "RUNOFF",     "ice_month", "all", .true., "none", 2
+ "ice_model", "SSH",        "SSH",        "ice_month", "all", .true., "none", 2
+
+ "ice_model", "HI",        "HI",        "ice_daily", "all", .true., "none", 2
+ "ice_model", "CN",        "CN",        "ice_daily", "all", .true., "none", 2
+ "ice_model", "UO",        "UO",        "ice_daily", "all", .true., "none", 2
+ "ice_model", "VO",        "VO",        "ice_daily", "all", .true., "none", 2
+ "ice_model", "RUNOFF",     "RUNOFF",   "ice_daily", "all", .true., "none", 2
+ "ice_model", "CALVING",     "CALVING",   "ice_daily", "all", .true., "none", 2
+
+#========================
+# ATMOSPHERE DIAGNOSTICS:
+#========================
+
+"flux",      "land_mask",   "land_mask",   "flux_daily", "all", .true., "none", 2,
+"flux",      "ice_mask",    "ice_mask",    "flux_daily", "all", .true.,  "none", 2,
+"flux",      "drag_heat",   "drag_heat",   "flux_daily", "all", .true.,  "none", 2,
+"flux",      "drag_mom",    "drag_mom",    "flux_daily", "all", .true.,  "none", 2,
+"flux",      "wind",        "wind",        "flux_daily", "all", .true.,  "none", 2,
+"flux",      "tau_x",       "tau_x",       "flux_daily", "all", .true.,  "none", 2,
+"flux",      "tau_y",       "tau_y",       "flux_daily", "all", .true.,  "none", 2,
+"flux",      "shflx",       "shflx",       "flux_daily", "all", .true.,  "none", 2,
+"flux",      "evap",        "evap",        "flux_daily", "all", .true.,  "none", 2,
+"flux",      "lwflx",       "lwflx",       "flux_daily", "all", .true.,  "none", 2,
+"flux",      "rh_ref",      "rh_ref",      "flux_daily", "all", .true.,  "none", 2,
+"flux",      "u_ref",       "u_ref",       "flux_daily", "all", .true.,  "none", 2,
+"flux",      "v_ref",       "v_ref",       "flux_daily", "all", .true.,  "none", 2,
+"flux",      "t_ref",       "t_ref",       "flux_daily", "all", .true.,"none", 2,
+"flux",      "t_surf",      "t_surf",      "flux_daily", "all", .true.,"none", 2,
+"flux",      "q_ref",       "q_ref",       "flux_daily", "all", .true.,"none", 2,
+
+#========================
+# LAND DIAGNOSTICS:
+#========================
+"land",    "geolon_t",   "geolon_t",   "land_static", "all", .false., "none", 1
+"land",    "geolat_t",   "geolat_t",   "land_static", "all", .false., "none", 1
+"land",    "geolon_t",   "geolon_t",   "land_month", "all", .false., "none", 1
+"land",    "geolat_t",   "geolat_t",   "land_month", "all", .false., "none", 1
+"land",    "geolon_t",   "geolon_t",   "land_daily", "all", .false., "none", 1
+"land",    "geolat_t",   "geolat_t",   "land_daily", "all", .false., "none", 1
+
+# land static output
+"lake",    "lake_depth", "lake_depth", "land_static", "all", .false., "none", 2
+"lake",    "lake_width", "lake_width", "land_static", "all", .false., "none", 2
+"land",    "cell_area",  "cell_area",  "land_static", "all", .false., "none", 2
+"land",    "area_land",  "land_area",  "land_static", "all", .false., "none", 2
+"land",    "area_lake",  "lake_area",  "land_static", "all", .false., "none", 2
+"land",    "area_soil",  "soil_area",  "land_static", "all", .false., "none", 2
+"land",    "land_frac",  "land_frac",  "land_static", "all", .false., "none", 2
+"land",    "no_riv",     "no_riv",     "land_static", "all", .false., "none", 2
+"river",   "rv_basin",   "rv_basin",   "land_static", "all", .false., "none", 2
+"river",   "rv_dir",     "rv_dir",     "land_static", "all", .false., "none", 2
+"river",   "rv_length",  "rv_length",  "land_static", "all", .false., "none", 2
+"river",   "rv_trav",    "rv_trav",    "land_static", "all", .false., "none", 2
+"soil",    "soil_Ksat",  "soil_Ksat",  "land_static", "all", .false., "none", 2
+"soil",    "soil_rlief", "soil_rlief", "land_static", "all", .false., "none", 2
+"soil",    "soil_sat",   "soil_sat",   "land_static", "all", .false., "none", 2
+"soil",    "soil_type",  "soil_type",  "land_static", "all", .false., "none", 2
+"soil",    "soil_wilt",  "soil_wilt",  "land_static", "all", .false., "none", 2
+
+# area fractions for different tile types
+"land",    "frac_glac",  "frac_glac",  "land_month",  "all", .true., "none", 2
+"land",    "frac_lake",  "frac_lake",  "land_month",  "all", .true., "none", 2
+"land",    "area_ntrl",  "area_ntrl",  "land_month",  "all", .true., "none", 2
+# land multi-level month-average output
+"glacier", "glac_T",     "glac_T",     "land_month",  "all", .true., "none", 2
+"lake",    "lake_dz",    "lake_dz",    "land_month",  "all", .true., "none", 2
+"lake",    "lake_K_z",   "lake_K_z",   "land_month",  "all", .true., "none", 2
+"lake",    "lake_T",     "lake_T",     "land_month",  "all", .true., "none", 2
+"lake",    "lake_wl",    "lake_wl",    "land_month",  "all", .true., "none", 2
+"lake",    "lake_ws",    "lake_ws",    "land_month",  "all", .true., "none", 2
+"soil",    "soil_ice",   "soil_ice",   "land_month",  "all", .true., "none", 2
+"soil",    "soil_liq",   "soil_liq",   "land_month",  "all", .true., "none", 2
+"soil",    "soil_psi",   "soil_psi",   "land_month",  "all", .true., "none", 2
+"soil",    "soil_T",     "soil_T",     "land_month",  "all", .true., "none", 2
+"soil",    "soil_uptk",  "soil_uptk",  "land_month",  "all", .true., "none", 2
+"soil",    "soil_uptk_ntrl", "soil_uptk_ntrl", "land_month", "all", .true., "none", 2
+
+# land 2-band variables
+"land",    "albedo_dif", "albedo_dif", "land_month",  "all", .true., "none", 2
+"land",    "albedo_dir", "albedo_dir", "land_month",  "all", .true., "none", 2
+"land",    "swdn_dif",   "swdn_dif",   "land_month",  "all", .true., "none", 2
+"land",    "swdn_dir",   "swdn_dir",   "land_month",  "all", .true., "none", 2
+"land",    "swup_dif",   "swup_dif",   "land_month",  "all", .true., "none", 2
+"land",    "swup_dir",   "swup_dir",   "land_month",  "all", .true., "none", 2
+
+# land one-level month-average output
+"flux",    "t_ref_land", "t_ref",      "land_month",  "all", .true., "none", 2
+"land",    "area",       "area",       "land_month",  "all", .true., "none", 2
+"land",    "area_glac",  "glac_area",  "land_month",  "all", .true., "none", 2
+"land",    "dis_heat",   "dis_heat",   "land_month",  "all", .true., "none", 2
+"land",    "dis_ice",    "dis_ice",    "land_month",  "all", .true., "none", 2
+"land",    "dis_liq",    "dis_liq",    "land_month",  "all", .true., "none", 2
+"land",    "evap",       "evap_land",  "land_month",  "all", .true., "none", 2
+"land",    "evap_glac",  "evap_glac",  "land_month",  "all", .true., "none", 2
+"land",    "evap_lake",  "evap_lake",  "land_month",  "all", .true., "none", 2
+"land",    "evap_soil",  "evap_soil",  "land_month",  "all", .true., "none", 2
+"land",    "fevapg",     "fevapg",     "land_month",  "all", .true., "none", 2
+"land",    "fevaps",     "fevaps",     "land_month",  "all", .true., "none", 2
+"land",    "fevapv",     "fevapv",     "land_month",  "all", .true., "none", 2
+"land",    "flw",        "flw",        "land_month",  "all", .true., "none", 2
+"land",    "fprec_l",    "fprec_l",    "land_month",  "all", .true., "none", 2
+"land",    "frunf",      "frunf",      "land_month",  "all", .true., "none", 2
+"land",    "fsw",        "fsw",        "land_month",  "all", .true., "none", 2
+"land",    "FWS",        "FWS",        "land_month",  "all", .true., "none", 2
+"land",    "FWSr",       "FWSr",       "land_month",  "all", .true., "none", 2
+"land",    "FWSv",       "FWSv",       "land_month",  "all", .true., "none", 2
+"land",    "grnd_flux",  "grnd_flux",  "land_month",  "all", .true., "none", 2
+"land",    "hevap",      "hevap",      "land_month",  "all", .true., "none", 2
+"land",    "hprec",      "hprec",      "land_month",  "all", .true., "none", 2
+"land",    "hrunf",      "hrunf",      "land_month",  "all", .true., "none", 2
+"land",    "levapg",     "levapg",     "land_month",  "all", .true., "none", 2
+"land",    "levaps",     "levaps",     "land_month",  "all", .true., "none", 2
+"land",    "levapv",     "levapv",     "land_month",  "all", .true., "none", 2
+"land",    "levapv_soil","levapv_soil","land_month",  "all", .true., "none", 2
+"land",    "fevapv_soil","fevapv_soil","land_month",  "all", .true., "none", 2
+"land",    "levapg_soil","levapg_soil","land_month",  "all", .true., "none", 2
+"land",    "fevapg_soil","fevapg_soil","land_month",  "all", .true., "none", 2
+"land",    "levaps_soil","levaps_soil","land_month",  "all", .true., "none", 2
+"land",    "fevaps_soil","fevaps_soil","land_month",  "all", .true., "none", 2
+"land",    "lwdn",       "lwdn",       "land_month",  "all", .true., "none", 2
+"land",    "LWS",        "LWS",        "land_month",  "all", .true., "none", 2
+"land",    "LWSr",       "LWSr",       "land_month",  "all", .true., "none", 2
+"land",    "LWSv",       "LWSv",       "land_month",  "all", .true., "none", 2
+"land",    "melt",       "melt",       "land_month",  "all", .true., "none", 2
+"land",    "melts",      "melts",      "land_month",  "all", .true., "none", 2
+"land",    "meltg_glac", "meltg_glac", "land_month",  "all", .true., "none", 2
+"land",    "precip",     "precip",     "land_month",  "all", .true., "none", 2
+"land",    "qca",        "qca",        "land_month",  "all", .true., "none", 2
+"land",    "runf",       "runf",       "land_month",  "all", .true., "none", 2
+"land",    "sens",       "sens",       "land_month",  "all", .true., "none", 2
+"land",    "snow",       "snow",       "land_month",  "all", .true., "none", 2
+"land",    "snow_glac",  "snow_glac",  "land_month",  "all", .true., "none", 2
+"land",    "snow_lake",  "snow_lake",  "land_month",  "all", .true., "none", 2
+"land",    "snow_soil",  "snow_soil",  "land_month",  "all", .true., "none", 2
+"land",    "Tca",        "Tca",        "land_month",  "all", .true., "none", 2
+"land",    "Tgrnd",      "Tgrnd",      "land_month",  "all", .true., "none", 2
+"land",    "Trad",       "Trad",       "land_month",  "all", .true., "none", 2
+"land",    "transp",     "transp",     "land_month",  "all", .true., "none", 2
+"land",    "water_lake", "water_lake", "land_month",  "all", .true., "none", 2
+"land",    "water_soil", "water_soil", "land_month",  "all", .true., "none", 2
+"river",   "rv_depth",   "rv_depth",   "land_month",  "all", .true., "none", 2
+"river",   "rv_d_hEt",   "rv_d_hEt",   "land_month",  "all", .true., "none", 2
+"river",   "rv_d_h2o",   "rv_d_h2o",   "land_month",  "all", .true., "none", 2
+"river",   "rv_d_ice",   "rv_d_ice",   "land_month",  "all", .true., "none", 2
+"river",   "rv_ice",     "rv_ice",     "land_month",  "all", .true., "none", 2
+"river",   "rv_i_het",   "rv_i_het",   "land_month",  "all", .true., "none", 2
+"river",   "rv_i_h2o",   "rv_i_h2o",   "land_month",  "all", .true., "none", 2
+"river",   "rv_i_ice",   "rv_i_ice",   "land_month",  "all", .true., "none", 2
+"river",   "rv_o_het",   "rv_o_het",   "land_month",  "all", .true., "none", 2
+"river",   "rv_o_h2o",   "rv_o_h2o",   "land_month",  "all", .true., "none", 2
+"river",   "rv_o_ice",   "rv_o_ice",   "land_month",  "all", .true., "none", 2
+"river",   "rv_Qavg",    "rv_Qavg",    "land_month",  "all", .true., "none", 2
+"river",   "rv_T",       "rv_T",       "land_month",  "all", .true., "none", 2
+"river",   "rv_veloc",   "rv_veloc",   "land_month",  "all", .true., "none", 2
+"river",   "rv_width",   "rv_width",   "land_month",  "all", .true., "none", 2
+"soil",    "soil_fgw",   "soil_fgw",   "land_month",  "all", .true., "none", 2
+"soil",    "soil_fsat",  "soil_fsat",  "land_month",  "all", .true., "none", 2
+"soil",    "soil_psi_n", "soil_psi_n", "land_month",  "all", .true., "none", 2
+"soil",    "soil_rbf",   "soil_rbf",   "land_month",  "all", .true., "none", 2
+"soil",    "soil_rie",   "soil_rie",   "land_month",  "all", .true., "none", 2
+"soil",    "soil_rnu",   "soil_rnu",   "land_month",  "all", .true., "none", 2
+"soil",    "soil_rsn",   "soil_rsn",   "land_month",  "all", .true., "none", 2
+"soil",    "soil_wtdep", "soil_wtdep", "land_month",  "all", .true., "none", 2
+"vegn",    "an_cl",      "an_cl",      "land_month",  "all", .true., "none", 2
+"vegn",    "an_op",      "an_op",      "land_month",  "all", .true., "none", 2
+"vegn",    "asoil",      "asoil",      "land_month",  "all", .true., "none", 2
+"vegn",    "bl",         "bl",         "land_month",  "all", .true., "none", 2
+"vegn",    "blv",        "blv",        "land_month",  "all", .true., "none", 2
+"vegn",    "br",         "br",         "land_month",  "all", .true., "none", 2
+"vegn",    "bsw",        "bsw",        "land_month",  "all", .true., "none", 2
+"vegn",    "bwood",      "bwood",      "land_month",  "all", .true., "none", 2
+"vegn",    "fsc",        "fsc",        "land_month",  "all", .true., "none", 2
+"vegn",    "gpp",        "gpp",        "land_month",  "all", .true., "none", 2
+"vegn",    "height",     "vegn_height","land_month",  "all", .true., "none", 2
+"vegn",    "LAI",        "LAI",        "land_month",  "all", .true., "none", 2
+"vegn",    "nep",        "nep",        "land_month",  "all", .true., "none", 2
+"vegn",    "npp",        "npp",        "land_month",  "all", .true., "none", 2
+"vegn",    "root_density","vegn_rden", "land_month",  "all", .true., "none", 2
+"vegn",    "resp",       "resp",       "land_month",  "all", .true., "none", 2
+"vegn",    "resg",       "resg",       "land_month",  "all", .true., "none", 2
+"vegn",    "root_zeta",  "vegn_rzeta", "land_month",  "all", .true., "none", 2
+"vegn",    "rsoil",      "rsoil",      "land_month",  "all", .true., "none", 2
+"vegn",    "rsoil_fast", "rsoil_fast", "land_month",  "all", .true., "none", 2
+"vegn",    "snow_crit",  "vegn_sncrit","land_month",  "all", .true., "none", 2
+"vegn",    "species",    "species",    "land_month",  "all", .true., "none", 2
+"vegn",    "ssc",        "ssc",        "land_month",  "all", .true., "none", 2
+"vegn",    "temp",       "vegn_T",     "land_month",  "all", .true., "none", 2
+"vegn",    "theta",      "theta",      "land_month",  "all", .true., "none", 2
+"vegn",    "tsoil_av",   "tsoil_av",   "land_month",  "all", .true., "none", 2
+"vegn",    "past_harv_pool",      "past_harv_pool",       "land_month", "all", .true.,  "none", 2
+"vegn",    "crop_harv_pool",      "crop_harv_pool",       "land_month", "all", .true.,  "none", 2
+"vegn",    "cleared_harv_pool",   "cleared_harv_pool",    "land_month", "all", .true.,  "none", 2
+"vegn",    "wood_fast_harv_pool", "wood_fast_harv_pool",  "land_month", "all", .true.,  "none", 2
+"vegn",    "wood_med_harv_pool",  "wood_med_harv_pool",   "land_month", "all", .true.,  "none", 2
+"vegn",    "wood_slow_harv_pool", "wood_slow_harv_pool",  "land_month", "all", .true.,  "none", 2
+"vegn",    "past_harv_rate",      "past_harv_rate",       "land_month", "all", .true.,  "none", 2
+"vegn",    "crop_harv_rate",      "crop_harv_rate",       "land_month", "all", .true.,  "none", 2
+"vegn",    "wood_fast_harv_rate", "wood_fast_harv_rate",  "land_month", "all", .true.,  "none", 2
+"vegn",    "wood_med_harv_rate",  "wood_med_harv_rate",   "land_month", "all", .true.,  "none", 2
+"vegn",    "wood_slow_harv_rate", "wood_slow_harv_rate",  "land_month", "all", .true.,  "none", 2
+"vegn",    "cleared_harv_rate",   "cleared_harv_rate",    "land_month", "all", .true.,  "none", 2
+"vegn",    "csmoke_rate","csmoke_rate","land_month",  "all", .true., "none", 2
+
+
+# land daily output
+"flux",  "evap_land",  "evap_land",    "land_daily",  "all", .true., "none", 2
+"flux",  "t_ref_land", "t_ref_max",    "land_daily",  "all",  max,   "none", 2
+"flux",  "t_ref_land", "t_ref_min",    "land_daily",  "all",  min,   "none", 2
+"land",  "precip",     "precip",       "land_daily",  "all", .true., "none", 2
+"land",  "runf_soil",  "runf_soil",    "land_daily",  "all", .true., "none", 2
+"land",  "snow_lake",  "snow_lake",    "land_daily",  "all", .true., "none", 2
+"land",  "snow_soil",  "snow_soil",    "land_daily",  "all", .true., "none", 2
+"river", "rv_d_h2o",   "rv_d_h2o",     "land_daily",  "all", .true., "none", 2
+"river", "rv_o_h2o",   "rv_o_h2o",     "land_daily",  "all", .true., "none", 2
+"vegn",  "temp",       "vegn_temp_max","land_daily",  "all",    max, "none", 2
+"vegn",  "temp",       "vegn_temp_min","land_daily",  "all",    min, "none", 2
+"vegn",  "npp",        "npp",          "land_daily",  "all", .true., "none", 2
+# land daily variables used in post-processing "refinement"
+"soil",  "soil_liq",   "soil_liq",     "land_daily",  "all", .true., "-1 -1 -1 -1 0 0.1", 2
+"soil",  "soil_ice",   "soil_ice",     "land_daily",  "all", .true., "-1 -1 -1 -1 0 0.1", 2
+
+# land monthly instant output
+"land_month_inst",       1,  "months", 1, "days", "time"
+#"land",    "area",       "area",       "land_month_inst",  "all", .false., "none", 2
+"land",    "LWS",        "LWS",        "land_month_inst",  "all", .false., "none", 2
+"land",    "LWSr",       "LWSr",       "land_month_inst",  "all", .false., "none", 2
+"land",    "FWS",        "FWS",        "land_month_inst",  "all", .false., "none", 2
+"land",    "FWSr",       "FWSr",       "land_month_inst",  "all", .false., "none", 2
+"land",    "HS",         "HS",         "land_month_inst",  "all", .false., "none", 2
+"land",    "HSr",        "HSr",        "land_month_inst",  "all", .false., "none", 2
+
+
+         </diagTable>
+
+     <namelist name="dummy_ocean_model_nml">
+       ocean_layout = 0,0
+       ocean_io_layout = 1,1
+       ocean_mask_table='MOM_mask_table'
+     </namelist>
+     <namelist name="dummy_ice_model_nml">
+       ice_layout = 0,0
+       ice_io_layout = 1,1
+       ice_mask_table='MOM_mask_table'
+     </namelist>
+
+
+         <csh type="always"><![CDATA[
+######BEGIN MOM6 and SIS2 layout setup################
+##THIS HAS TO BE PART OF csh type=always###
+cat > $work/INPUT/MOM_override << MOM_OVERRIDE_EOF
+#override ENERGYSAVEDAYS = 30.0
+#override DT = 1800.
+#override P_REF = 0.
+#override DT_THERM = 3600.0
+#override U_TRUNC_FILE = ""
+#override V_TRUNC_FILE = ""
+#override ADJUST_NET_FRESH_WATER_TO_ZERO = True
+#override ADJUST_NET_FRESH_WATER_BY_SCALING = False
+#override VAR_PEN_SW = False
+#override PEN_SW_SCALE = 40.0
+#override PEN_SW_FRAC = 0.42
+#override PEN_SW_NBANDS = 3
+#override CORRECT_ABSORPTION_DEPTH = True
+MOM_OVERRIDE_EOF
+
+touch $work/INPUT/SIS_override
+
+cat > $work/INPUT/SIS_override << EOF
+#override ICE_STATS_INTERVAL = 30.0
+#override DO_ICEBERGS = True
+EOF
+
+#scan auxiliary_nml
+set OCN_MASK_TABLE = 
+set OCN_MASK_TABLE = `awk '/ocean_mask_table/ {gsub(/=/," ");gsub(/,/," ");print $2}' $work/input.nml`
+set OCN_LAYOUT     = `awk '/ocean_layout/     {gsub(/=/," ");           print $2,$3}' $work/input.nml`
+set OCN_IO_LAYOUT  = `awk '/ocean_io_layout/  {gsub(/=/," ");           print $2,$3}' $work/input.nml`
+
+cat > $work/INPUT/MOM_layout << MOM_LAYOUT_EOF
+#override undef NIPROC_IO
+#override undef NJPROC_IO
+#override undef NIPROC
+#override undef NJPROC
+#override IO_LAYOUT = $OCN_IO_LAYOUT
+#override LAYOUT    = $OCN_LAYOUT
+#override MASKTABLE = $OCN_MASK_TABLE
+MOM_LAYOUT_EOF
+
+#scan auxiliary_nml
+set ICE_MASK_TABLE = `awk '/ice_mask_table/ {gsub(/=/," ");gsub(/,/," ");print $2}' $work/input.nml`
+set ICE_LAYOUT     = `awk '/ice_layout/     {gsub(/=/," ");           print $2,$3}' $work/input.nml`
+set ICE_IO_LAYOUT  = `awk '/ice_io_layout/  {gsub(/=/," ");           print $2,$3}' $work/input.nml`
+
+cat > $work/INPUT/SIS_layout << SIS_LAYOUT_EOF
+#override undef NIPROC_IO
+#override undef NJPROC_IO
+#override undef NIPROC
+#override undef NJPROC
+#override IO_LAYOUT = $ICE_IO_LAYOUT
+#override LAYOUT    = $ICE_LAYOUT
+#override MASKTABLE = $ICE_MASK_TABLE
+SIS_LAYOUT_EOF
+
+######END MOM6 and SIS2 layout setup################
+
+
+cd $work/INPUT
+
+if ( $currentSeg == 1 ) then
+     set fyear = 1980
+     rm -f coupler.res
+     rm -f ice_model.res.nc
+endif
+
+foreach var (t10 q10 uv10 lwdn swdn precip slp)
+  if (-e $var.nc) rm -f $var.nc
+  ln -s /lustre/f1/pdata/gfdl_O/datasets/reanalysis/MERRA/$var/${var}_merra_${fyear}.nc $var.nc
+end
+
+
+
+cd $work
+
+#------------------------------------------
+## Find out whether to restart.
+# MOM6 restart switch
+if ( $currentSeg == 1 ) then
+   set restart_flag = 'n'
+else
+   set restart_flag = 'r'
+endif
+cd $work
+
+## Run the model
+#------------------------------------------
+    ]]></csh>
+
+</input>
+
+ <runtime>
+   <regression label="basic" >
+         <run days="10"   npes="$(PROD_NPES)" runTimePerJob="01:00:00"/>
+   </regression>
+   <production simTime="$(PROD_SIMTIME)" units="years" npes="$(PROD_NPES)" runtime="$(PROD_RUNTIME)">
+        <segment simTime="12" units="months" runTime="$(PROD_SEGTIME)"/>
+   </production>
+ </runtime>
+
+    <postProcess>
+<!-- MDBI, this switch must be on to trigger "fredb" automatically -->
+     <analysis switch="$(MDBIswitch)" cumulative="no" script="$FRE_CURATOR_HOME/share/bin/database_ingestor.csh"/>
+<!-- /MDBI -->
+      <xi:include xpointer="xpointer(//experiment[@name='LM3_postprocess']/postProcess/node())"/>
+      <xi:include xpointer="xpointer(//experiment[@name='FLOR2_postprocess']/postProcess/node())"/>
+    </postProcess>
+
+</experiment>
+
+
+  <experiment name="FLOR2_domain_decomp">
+    <input>
+      <csh><![CDATA[
+set domains_stack_size = "3097152"
+
+if ( "$npes" == "384" ) then
+  set fv_layout    =   "0,0"; set fv_io_layout    =  "1,1"
+  set land_layout  =   "0,0"; set land_io_layout  =  "1,1"
+  set ice_layout   =   "0,0"; set ice_io_layout   =  "1,1"
+  set ocn_layout   =   "24,12"; set ocn_io_layout   =  "1,4"; set ocn_mask_table = "MOM_mask_table"
+  set ocean_npes = "288"
+  set npes = "384"
+else
+  if ( $echoOn ) unset echo
+  echo "*ERROR*: npes == '$npes' is not supported in this xml."
+  if ( $echoOn ) set echo
+  exit 1
+endif
+
+cat > $work/INPUT/MOM_layout << LAYOUT_EOF
+#override undef NIPROC
+#override undef NJPROC
+#override undef NIPROC_IO
+#override undef NJPROC_IO
+#override LAYOUT = $ocn_layout
+#override IO_LAYOUT = $ocn_io_layout
+MASKTABLE = $ocn_mask_table
+LAYOUT_EOF
+
+cat > $work/INPUT/SIS_layout << LAYOUT_EOF
+#override undef NIPROC
+#override undef NJPROC
+#override undef NIPROC_IO
+#override undef NJPROC_IO
+#override LAYOUT = $ice_layout
+#override IO_LAYOUT = $ice_io_layout
+MASKTABLE = $ocn_mask_table
+LAYOUT_EOF
+
+# runCommand:
+  alias runCommand "aprun -n $npes -d 1 ./$executable:t"
+
+# Copy MOM6 input files needed for postprocessing  to GFDL (waiting for FRE to do this for us)
+if ( $?flagOutputXferOn && $?flagOutputPostProcessOn ) then
+  #trick to copy MOM6 directory but avoid traversing the .datasets links
+  tar cvf mom6.tar --exclude='.datasets' -C $(MOM6_EXAMPLES) . > /dev/null
+  #tar cvf mom6.tar  --exclude='.datasets' --exclude='src' --exclude='INPUT'  -C $(MOM6_EXAMPLES) . > /dev/null
+  mkdir mom6
+  tar xvf mom6.tar -C ./mom6 > /dev/null
+  module switch gcp/2.2 gcp/2.3
+  gcp --batch -cd -r --sync mom6 gfdl:$(NB_ROOT)/
+endif
+
+
+      ]]></csh>
+
+    </input>
+  </experiment>
+
+  <experiment name="FLOR2_grid">
+    <input>
+      <dataFile label="gridSpec" target="INPUT/" chksum="" size="" timestamp="">
+        <dataSource site="ncrc">/lustre/f1/unswept/Matthew.Harrison/MOM6_datasets/FLOR2_C180_grid.061515/mosaic.tar</dataSource>
+        <dataSource site="gfdl">/archive/mjh/gold/datasets/FLOR2/C180_FLOR2_mosaic.061515.tar</dataSource> 
+      </dataFile>
+
+    </input>
+  </experiment>
+
+  
+  <experiment name="FLOR2_data">
+    <input>
+      <dataFile label="input" target="INPUT/" chksum="" size="" timestamp="">
+       <dataSource platform="$(platform)">$(MOM6_EXAMPLES)/ice_ocean_SIS2/FLOR2/MOM_input</dataSource>
+      </dataFile>
+<!--       <dataFile label="input" target="INPUT/" chksum="" size="" timestamp=""> -->
+<!--        <dataSource platform="$(platform)">$(MOM6_EXAMPLES)/ice_ocean_SIS2/FLOR2/MOM_saltrestore</dataSource> -->
+<!--       </dataFile> -->
+      <dataFile label="input" target="INPUT/" chksum="" size="" timestamp="">
+       <dataSource platform="$(platform)">$(MOM6_EXAMPLES)/ice_ocean_SIS2/FLOR2/INPUT/layer_coord.nc</dataSource>
+      </dataFile>
+      <dataFile label="input" target="INPUT/" chksum="" size="" timestamp="">
+       <dataSource platform="$(platform)">$(MOM6_EXAMPLES)/ice_ocean_SIS2/FLOR2/INPUT/seawifs_1998-2006_smoothed_2X.nc</dataSource>
+      </dataFile>
+      <dataFile label="input" target="INPUT/" chksum="" size="" timestamp="">
+       <dataSource platform="$(platform)">$(MOM6_EXAMPLES)/ice_ocean_SIS2/FLOR2/INPUT/tidal_amplitude.nc</dataSource>
+      </dataFile>
+      <dataFile label="input" target="INPUT/" chksum="" size="" timestamp="">
+       <dataSource platform="$(platform)">$(MOM6_EXAMPLES)/ice_ocean_SIS2/FLOR2/INPUT/MOM_channels_FLOR</dataSource>
+      </dataFile>
+      <dataFile label="input" target="INPUT/" chksum="" size="" timestamp="">
+       <dataSource platform="$(platform)">$(MOM6_EXAMPLES)/ice_ocean_SIS/OM4_025/INPUT/vgrid_75_2m.nc</dataSource>
+      </dataFile>
+      <dataFile label="input" target="INPUT/" chksum="" size="" timestamp="">
+       <dataSource platform="$(platform)">$(MOM6_EXAMPLES)/ice_ocean_SIS/OM4_025/INPUT/WOA05_pottemp_salt.nc </dataSource>
+      </dataFile>
+<!--       <dataFile label="diagTable" target="INPUT/" chksum="" size="" timestamp=""> -->
+<!--         <dataSource site="ncrc">$(MOM6_EXAMPLES)/ice_ocean_SIS2/FLOR2/diag_table.MOM6</dataSource> -->
+<!--         <dataSource site="gfdl">$(NB_ROOT)/mom6/ice_ocean_SIS2/FLOR2/diag_table.MOM6</dataSource> -->
+<!--       </dataFile> -->
+
+     <namelist name="MOM_input_nml" >
+         output_directory = './',
+         input_filename = '$restart_flag'
+         restart_input_dir = 'INPUT/',
+         restart_output_dir = 'RESTART/',
+         parameter_filename = 'INPUT/MOM_input','INPUT/MOM_layout','INPUT/MOM_override'
+     </namelist>
+
+     <csh type="always"><![CDATA[
+if ( $currentSeg == 1 ) then
+   set restart_flag = 'n'
+else
+   set restart_flag = 'r'
+endif
+
+      ]]></csh>
+ 
+     </input>
+
+  </experiment>
+
+  <experiment name="SIS2_data">
+    <input>
+
+<!--      <dataFile label="diagTable" target="INPUT/" chksum="" size="" timestamp=""> -->
+<!--         <dataSource site="ncrc">$(MOM6_EXAMPLES)/ice_ocean_SIS2/FLOR2/diag_table.SIS</dataSource> -->
+<!--         <dataSource site="gfdl">$(NB_ROOT)/mom6/ice_ocean_SIS2/FLOR2/diag_table.SIS</dataSource> -->
+<!--      </dataFile> -->
+
+
+     <dataFile label="input" target="INPUT/" chksum="" size="" timestamp=""> 
+         <dataSource platform="$(platform)">$(MOM6_EXAMPLES)/ice_ocean_SIS2/FLOR2/SIS_input</dataSource>
+     </dataFile>
+
+<!-- No init ice yet
+     <dataFile label="input" target="INPUT/ice_model.res.nc" chksum="" size="" timestamp="">
+       <dataSource platform="$(platform)">$(MOM6_EXAMPLES)/ice_ocean_SIS/OM4_025/INPUT/.datasets/OM4_025/INPUT/ice_model.res.v20140620.nc</dataSource>
+     </dataFile>
+-->
+     <namelist name="SIS_input_nml" >
+         output_directory = './',
+         input_filename = '$restart_flag'
+         restart_input_dir = 'INPUT/',
+         restart_output_dir = 'RESTART/',
+         parameter_filename = 'INPUT/SIS_input','INPUT/SIS_layout','INPUT/SIS_override'
+     </namelist>
+
+     </input>
+  </experiment>
+
+
+  <experiment name="SIS_data">
+    <input>
+
+<!--      <dataFile label="diagTable" target="INPUT/" chksum="" size="" timestamp=""> -->
+<!--         <dataSource site="ncrc">$(MOM6_EXAMPLES)/ice_ocean_SIS2/FLOR2/diag_table.SIS</dataSource> -->
+<!--         <dataSource site="gfdl">$(NB_ROOT)/mom6/ice_ocean_SIS2/FLOR2/diag_table.SIS</dataSource> -->
+<!--      </dataFile> -->
+
+
+<!-- No init ice yet
+     <dataFile label="input" target="INPUT/ice_model.res.nc" chksum="" size="" timestamp="">
+       <dataSource platform="$(platform)">$(MOM6_EXAMPLES)/ice_ocean_SIS/OM4_025/INPUT/.datasets/OM4_025/INPUT/ice_model.res.v20140620.nc</dataSource>
+q     </dataFile>
+-->
+
+     </input>
+  </experiment>
+
+
+  <experiment name="LM3_data">
+    <input>
+
+     <dataFile label="input" target="INPUT/" chksum="" size="" timestamp="">
+        <dataSource site="ncrc">/lustre/f1/unswept/Sergey.Malyshev/awg/input/lm3/lm3_data_20150322.tar</dataSource>
+        <dataSource site="gfdl"></dataSource>
+     </dataFile>
+     <dataFile label="input" target="INPUT/" chksum="" size="" timestamp="">
+        <dataSource site="ncrc">/lustre/f1/pdata/fms/module_data/riga/navy_topography.data.nc</dataSource>
+        <dataSource site="gfdl"></dataSource>
+     </dataFile>
+     <dataFile label="input" target="INPUT/" chksum="" size="" timestamp="">
+        <dataSource site="ncrc">/lustre/f1/pdata/fms/module_data/riga/sst_data.cpio</dataSource>
+        <dataSource site="gfdl"></dataSource>
+     </dataFile>
+     <dataFile label="input" target="INPUT/co2_gblannualdata.nc" chksum="" size="" timestamp="">
+        <dataSource site="ncrc">/lustre/f1/unswept/Sergey.Malyshev/DATA/co2/co2_rcp45_gblannualdata_1800-2500_2x2.nc</dataSource>
+        <dataSource site="gfdl"></dataSource>
+     </dataFile>
+      <namelist name="cana_nml">
+       turbulence_to_use = "lm3v"
+       init_co2 = 286.0e-6
+       canopy_air_mass_for_tracers = 10.0
+       allow_small_z0 = .true.
+      </namelist>
+      <namelist name="glac_data_nml">
+       use_lm2_awc = .true., 
+       rsa_exp_global = 10.,
+       f_iso_cold = 0.92, 0.58
+       f_vol_cold = 0.06, 0.08
+       f_geo_cold = 0.00, 0.00
+       f_iso_warm = 0.92, 0.58
+       f_vol_warm = 0.06, 0.08
+       f_geo_warm = 0.00, 0.00
+       dat_emis_dry = 1., 
+       dat_emis_sat = 1.,
+       geothermal_heat_flux_constant = 0.065
+      </namelist>
+
+      <namelist name="glac_nml">
+       conserve_glacier_mass = .true.
+       lm2 = .true.
+       albedo_to_use = 'brdf-params'
+      </namelist>
+
+      <namelist name="harvesting_nml">
+       do_harvesting          = .FALSE.     !!! turn on for LAND USE 
+       grazing_intensity      = 0.25
+       grazing_residue        = 0.1
+       frac_wood_wasted_harv  = 0.25
+       frac_wood_wasted_clear = 0.25
+       !frac_wood_fast         = ONETHIRD
+       !frac_wood_med          = ONETHIRD
+       !frac_wood_slow         = ONETHIRD
+       crop_seed_density      = 0.1
+      </namelist>
+
+      <namelist name="lake_data_nml">
+       lake_to_use = 'from-rivers'
+       lake_specific_width = .false.
+       large_lake_sill_width = 800.
+       num_l = 20,
+       dat_emis_dry = 1.,
+       dat_emis_sat = 1.,
+       dat_heat_capacity_ref = 0.,
+       f_iso_liq = 0.025, 0.01
+       f_iso_ice = 0.025, 0.01
+       f_vol_liq = 0., 0.
+       f_vol_ice = 0., 0.
+       f_geo_liq = 0., 0.
+       f_geo_ice = 0., 0.
+       dry_lake_depth_frac = 0.5
+       dat_z0_momentum(1)     = 1.4e-4
+       dat_z0_momentum_ice(1) = 1.4e-4
+       k_over_B_ice           = 0.25
+       geothermal_heat_flux_constant = 0.065
+      </namelist>
+
+      <namelist name="lake_nml">
+       albedo_to_use = 'brdf-params'
+       float_ice_to_top = .true.
+       lake_depth_max = 1.e10
+       max_plain_slope = 16.e-5
+       K_z_background  = 15.e-5
+      </namelist>
+
+      <namelist name="land_debug_nml">
+       watch_point = 0,0,0,1
+      </namelist>
+
+      <namelist name="land_model_nml">
+       tau_snow_T_adj = 604800.
+      </namelist>
+
+      <namelist name="landuse_nml">
+       do_landuse_change = .false.,       !!! turn on for LAND USE
+       input_file = 'INPUT/landuse.nc'
+      </namelist>
+
+      <namelist name="river_nml">
+       dt_slow     = 86400.
+       land_area_called_cellarea = .true.
+       all_big_outlet_ctn0 = .true.
+       ave_DHG_exp = 0.55, 0.45, 0.0
+       ave_DHG_coef = 7.5, 0.3, 0.444444444
+       ave_AAS_exp = 0.26, 0.40, 0.34
+      </namelist>
+
+      <namelist name="river_physics_nml">
+       lake_sfc_w_min = 1.
+       prohibit_cold_ice_outflow = .FALSE.
+      </namelist>
+
+      <namelist name="snow_data_nml">
+       emis_snow_max = 1.
+       emis_snow_min = 1.
+       z0_momentum = 0.01
+       num_l = 5
+       dz = 0.05, 0.2, 0.5, 0.2, 0.05, 0.0, 0.0, 0.0, 0.0, 0.0
+       f_iso_cold = 0.92, 0.58
+       f_vol_cold = 0.06, 0.08
+       f_geo_cold = 0.00, 0.00
+       f_iso_warm = 0.92, 0.58
+       f_vol_warm = 0.06, 0.08
+       f_geo_warm = 0.00, 0.00
+       depth_crit = 0.05
+       thermal_cond_ref = 0.09
+      </namelist>
+
+      <namelist name="snow_nml">
+       min_snow_mass = 1.e-7
+       snow_density = 250.
+       albedo_to_use = 'brdf-params'
+      </namelist>
+
+      <namelist name="soil_data_nml">
+       geohydrology_to_use    = 'hill'
+       use_comp_for_ic        = .true.
+       use_tau_fix            = .false.
+       use_sat_fix            = .true.
+       use_alt3_soil_hydraulics = .true.
+       gw_scale_soil_depth  = 0.1666667
+       gw_scale_perm        = 1.0
+       gw_scale_relief      = 0.5
+       aspect           = 0.01
+       k0_macro_z       = 0.0
+       k0_macro_x       = 1.0
+       freeze_factor    = 2.0
+       comp             = 1e-4
+       num_l            = 20
+       dz = 0.020, 0.040, 0.040, 0.050, 0.05, 0.100, 0.10, 0.200, 0.200, 0.2, 
+            0.40,  0.40,  0.40,  0.4,   0.4,   1.0,   1.0,  1.0,  1.5,   2.5
+       dat_emis_dry        = 1., 1., 1., 1., 1., 1., 1., 1., 1.
+       dat_emis_sat        = 1., 1., 1., 1., 1., 1., 1., 1., 1.
+       dat_tf_depr         = 2., 2., 2., 2., 2., 2., 2., 2., 2.
+       dat_w_sat(1:7)      =  .421,  .439,  .468,  .430,  .444,  .454,  .443
+       dat_k_sat_ref(1:7)  =  .014, .0034,.00097, .0069, .0037, .0018, .0036
+       dat_psi_sat_ref(1:7)= -.036,  -.35,  -.47,  -.11,  -.13,  -.41,  -.18
+       dat_chb(1:7)        =   4.3,   5.2,   12.,   4.8,   7.9,   8.4,   7.0
+       Dpsi_min_const      = -1.e12
+       K_min               = 1.e-12
+       geothermal_heat_flux_constant = 0.065
+       retro_a0N1 = .true.
+      </namelist>
+
+      <namelist name="soil_nml">
+       init_wtdep    = 10.
+       albedo_to_use = 'brdf-maps'
+       uptake_to_use = 'darcy2d-linearized'
+       uptake_oneway = .true.
+       active_layer_drainage_acceleration = 1.
+       gw_flux_max   = 0.001
+       lrunf_from_div = .false.
+       cold_infilt   = .false.
+       use_depth_to_wt_4 = .true.
+       layer_for_gw_switch = 16
+       bottom_up_cold_infilt = .true.
+       cold_depth = 3.0
+       bwood_macinf = 1.
+       allow_neg_wl = .true.
+       prohibit_negative_water_div = .true.
+      </namelist>
+
+      <namelist name="static_veg_nml">
+       use_static_veg = .FALSE.                
+       timeline   = 'loop'
+       start_loop = 2420, 1, 1, 0, 0, 0
+       end_loop   = 2470, 1, 1, 0, 0, 0
+       fill_land_mask = .TRUE.
+      </namelist>
+
+      <namelist name="vegn_data_nml">
+       vegn_to_use = 'uniform'
+       K1=10,
+       K2=0.1,
+       fsc_liv=0.9,
+       fsc_wood=0.45,
+       c1(4) = 0.3
+       c2(4) = 0.3
+       Vmax = 2.0E-5, 2.0E-5, 2.0E-5, 2.0E-5, 1.50E-5,
+       m_cond = 4., 9., 9., 7., 7.,
+       alpha_phot = 0.05, 0.06, 0.06, 0.06, 0.06,
+       gamma_resp = 0.03, 0.02, 0.02, 0.02, 0.02,
+       tc_crit(0:2) = 3*273.16
+       fact_crit_phen(0:4) = 0., 0., 0., 0., 0.
+       fact_crit_fire(0:4) = 0., 0., 0., 0., 0.
+       cnst_crit_phen(0:4) = 0.30, 0.15, 0.15, 0.30, 0.30
+       cnst_crit_fire(0:4) = 0.15,  0.40, 0.15, 0.15, 0.15
+       wet_leaf_dreg(0:4)  = .3, .3, .3, .3, .3
+       ksi =  0, 0, 0, 0, 0,
+       leaf_refl(0:4,1) = 0.11, 0.11, 0.10, 0.10, 0.10
+       leaf_refl(0:4,2) = 0.58, 0.58, 0.5, 0.5, 0.5,
+       dat_root_zeta(0:4) =   0.35212, 0.17039, 0.28909, 0.25813, 0.17039
+       critical_root_density = 0.0,
+       tau_drip_s     = 259200.0
+       cmc_lai(0:4) = 0.10, 0.10, 0.10, 0.10, 0.20
+       csc_lai(0:4) = 0.30, 0.30, 0.30, 0.30, 0.60
+       dat_snow_crit = 0.0167, 0.0167, 0.0333, 0.2, 0.1
+       t_transp_min = 268.
+       srl(0:1) = 112.0e3, 150.0e3
+       root_perm = 14*5e-7
+       alpha(1,3) = 4 
+       leaf_age_tau(2) = 150
+       smoke_fraction = 0.9, 0.9, 0.6, 0.6, 0.6
+       tg_c3_thresh = 1
+       phen_ev1 = 0.2
+       phen_ev2 = 0.7
+       cmc_eps = 0.01
+       alpha(0:4,6) = 0.0, 0.0, 0.012, 0.012, 0.012
+       treefall_disturbance_rate = 0.175, 0.185, 0.025, 0.0275, 0.027
+      </namelist>
+
+      <namelist name="vegn_nml">
+       init_Tv = 288.0
+       rad_to_use = 'two-stream'
+       photosynthesis_to_use = 'leuning'
+       snow_rad_to_use = 'paint-leaves'
+       co2_to_use_for_photosynthesis ='interactive'
+       co2_for_photosynthesis = 286.0e-6
+       do_cohort_dynamics   = .TRUE.,              
+       do_patch_disturbance = .TRUE.,              
+       do_phenology         = .TRUE.,              
+       do_biogeography      = .TRUE.,              
+       do_seed_transport    = .TRUE.,
+       tau_smooth_ncm = 22.0
+       rav_lit_bwood = 300.
+      </namelist>
+
+     </input>
+  </experiment>
+
+  <!-- OCEAN  and ICE post-processing-->
+  <experiment name="FLOR2_postprocess">
+
+      <postProcess> 
+         <csh><![CDATA[
+         cd $work/RESTART
+         ncrcat icebergs.res.nc.* icebergs.res.nc
+         if(-e icebergs.res.nc) rm -f icebergs.res.nc.*
+         cd $work
+         ncrcat iceberg_trajectories.nc.* iceberg_trajectories.nc
+         rm -f iceberg_trajectories.nc.* 
+         #Save the last line of timestats without the first (step number) column as a signature of MOM6 answers
+         tail -1 timestats | cut -c8- > RESTART/$enddate.timestats.res
+         #Save the whole timestats under ascii/
+         mv timestats $enddate.timestats
+         mv timestats.nc $enddate.timestats.nc
+
+         #Make a directory to trick FRE to pick up and archive in ascii
+         mkdir extra.results
+
+         mv *velocity_truncations CPU_stats MOM_parameter_doc* extra.results/
+
+         ]]></csh>
+
+      <!--REFINE DIAG SCRIP -->
+      <!--By default a refineDiag script causes the annual data to be unpacked and saved in /ptmp/$USER-->
+      <!--MOM6_refineDiag.csh is currently empty and is here only to cause the unpack annual history files in /ptmp-->
+      <refineDiag script="$(NB_ROOT)/mom6/tools/analysis/MOM6_refineDiag.csh"/>
+      <!--PostProcessing component models-->
+      <component type="ocean_monthly"   start="$(PP_START_YEAR)" source="ocean_month" sourceGrid="ocean-tripolar">
+        <timeSeries freq="monthly" chunkLength="$(CHUNK_LENGTH_A)" source="ocean_month">
+          <analysis switch="$(ANALYSIS_SWITCH)" cumulative="no" script="$(NB_ROOT)/mom6/ice_ocean_SIS/OM4_025/ocn_monthly.frepp"/>
+        </timeSeries>
+      </component>
+
+      <component type="ocean_annual_z" start="$(PP_START_YEAR)" source="ocean_annual_z"  sourceGrid="ocean-tripolar">
+        <timeSeries freq="annual" interval="$(CHUNK_LENGTH_A)">
+        </timeSeries>
+        <timeAverage source="annual" interval="$(CHUNK_LENGTH_A)">
+          <analysis switch="$(ANALYSIS_SWITCH)" cumulative="no" script="$(NB_ROOT)/mom6/ice_ocean_SIS/OM4_025/ocn_annual_z.frepp"/>
+        </timeAverage>
+      </component>
+
+      <component type="ocean_annual" start="$(PP_START_YEAR)"  source="ocean_annual"  sourceGrid="ocean-tripolar"> 
+        <timeSeries freq="annual" interval="$(CHUNK_LENGTH_A)">
+        </timeSeries>
+        <timeAverage source="annual" interval="$(CHUNK_LENGTH_A)">
+          <analysis switch="$(ANALYSIS_SWITCH)" cumulative="no" script="$(NB_ROOT)/mom6/ice_ocean_SIS/OM4_025/ocn_annual.frepp"/>
+        </timeAverage>
+      </component>
+
+      <component type="ice"  start="$(PP_START_YEAR)"  source="ice_month"  sourceGrid="ocean-tripolar">
+        <timeSeries freq="monthly" chunkLength="$(CHUNK_LENGTH_A)"  source="ice_month">
+	   <analysis switch="$(ANALYSIS_SWITCH)" script="$(NB_ROOT)/mom6/tools/analysis/Krasting-SeaIce.csh"/>
+	</timeSeries>   
+        <timeAverage source="annual"  interval="$(CHUNK_LENGTH_A)"/>
+      </component>
+
+     </postProcess>
+
+</experiment>
+
+  <experiment name="LM3_postprocess">
+    <postProcess>
+<!--       <component type="land_daily" start="$(PP_START_YEAR)"  source="land_daily" interpMethod="conserve_order1" cubicToLatLon="360,576"> -->
+<!--           <timeSeries freq="daily" source="land_daily" chunkLength="$(CHUNK_LENGTH_A)"/> -->
+<!--        </component> -->
+
+<!--        <component type="land" start="$(PP_START_YEAR)"  source="land_month" interpMethod="conserve_order1" cubicToLatLon="360,576"> -->
+<!--           <timeSeries freq="monthly" chunkLength="$(CHUNK_LENGTH_A)"/> -->
+<!--        </component> -->
+
+<!--        <component type="flux" start="$(PP_START_YEAR)"  source="flux_daily" interpMethod="conserve_order1" cubicToLatLon="360,576"> -->
+<!--           <timeSeries freq="daily" source="flux_daily" chunkLength="$(CHUNK_LENGTH_A)"/> -->
+<!--        </component> -->
+
+    </postProcess>
+  </experiment> 
+
+
+</experimentSuite>
