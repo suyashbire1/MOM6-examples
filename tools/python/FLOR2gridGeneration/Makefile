@@ -11,7 +11,7 @@
 
 SHELL=tcsh -f
 
-all: input forcing obs
+all: input forcing obs mosaic
 	md5sum -c md5sums.txt
 
 showenv:
@@ -26,6 +26,8 @@ input: ocean_hgrid.nc topog.nc basin_codes.nc
 forcing: salt_restore.nc seawifs_1998-2006_smoothed_2X.nc tidal_amplitude.nc
 
 obs: WOA05_ptemp_salt_monthly.nc WOA05_ptemp_salt_annual.nc
+
+mosaic: C180_mosaic/mosaic.tar
 
 # Grid
 
@@ -67,6 +69,9 @@ seawifs_1998-2006_smoothed_2X.nc: ocean_hgrid.nc topog.nc /archive/gold/datasets
 
 tidal_amplitude.nc: DATA interpTides.py local
 	unlimit stacksize; setenv PYTHONPATH ./local/lib/python; python interpTides.py
+
+C180_mosaic/mosaic.tar: topog.nc
+	(cd C180_mosaic;./create_c180_mosaic_and_rivers.csh)
 
 DATA: tpxo7_atlas_netcdf.tar.Z GEBCO_08_v2.nc
 	tar xzvf tpxo7_atlas_netcdf.tar.Z
@@ -114,3 +119,6 @@ md5sums.txt: ocean_hgrid.nc  interpolated_topog.nc topog.nc basin_codes.nc salt_
 	echo >> $@
 	echo Obs >> $@
 	md5sum WOA05_ptemp_salt_{monthly,annual}.nc >> $@
+	echo >> $@
+	echo Mosaic >> $@
+	md5sum C180_mosaic/mosaic.tar >> $@

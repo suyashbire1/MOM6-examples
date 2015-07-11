@@ -17,3 +17,6 @@ d0dcef39a65d71b1a7d6e1ebec9b06d1  tidal_amplitude.nc
 Obs
 708c256e3a663ca93af44742693c1d94  WOA05_ptemp_salt_monthly.nc
 e5978a20dcbe8d805a2aebc391fcbd19  WOA05_ptemp_salt_annual.nc
+
+Mosaic
+81fb565225853a256d16f31bd0b908cb  C180_mosaic/mosaic.tar
