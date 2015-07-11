@@ -35,9 +35,12 @@ ocean_hgrid.nc: local
 	./changeChar.py ocean_hgrid.nc tile tile1
 
 # Topography
-interpolated_topog.nc: ocean_hgrid.nc
+interpolated_topog.nc: GEBCO_08_v2.nc ocean_hgrid.nc
 	unlimit stacksize; setenv PYTHONPATH ./local/lib/python; python create_topo.py
 
+
+edit_topog.nc: interpolated_topog.nc
+	./applyTopoEdits.py --orig=interpolated_topog.nc --edits=topo_edits --output=edit_topog.nc
 
 topog.nc: edit_topog.nc interpolated_topog.nc
 	./ice9.py edit_topog.nc --output topog.nc
@@ -70,7 +73,8 @@ DATA: tpxo7_atlas_netcdf.tar.Z GEBCO_08_v2.nc
 	touch DATA
 
 tpxo7_atlas_netcdf.tar.Z:
-	wget ftp://ftp.oce.orst.edu/dist/tides/Global/tpxo7_atlas_netcdf.tar.Z
+#	wget ftp://ftp.oce.orst.edu/dist/tides/Global/tpxo7_atlas_netcdf.tar.Z
+	ln -s  /archive/gold/datasets/obs/tpxo7_atlas_netcdf.tar.Z
 
 MIDAS:
 	git clone https://github.com/mjharriso/MIDAS.git
@@ -95,7 +99,7 @@ frepp_local: MIDAS/README.md
 	touch local
 
 GEBCO_08_v2.nc :
-	cp /archive/gold/datasets/topography/$@ .
+	ln -s /archive/gold/datasets/topography/$@ .
 
 md5sums.txt: ocean_hgrid.nc  interpolated_topog.nc topog.nc basin_codes.nc salt_restore.nc seawifs_1998-2006_smoothed_2X.nc tidal_amplitude.nc WOA05_ptemp_salt_monthly.nc WOA05_ptemp_salt_annual.nc
 	echo Grids > $@
