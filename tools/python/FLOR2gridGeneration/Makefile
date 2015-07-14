@@ -27,7 +27,7 @@ forcing: salt_restore.nc seawifs_1998-2006_smoothed_2X.nc tidal_amplitude.nc
 
 obs: WOA05_ptemp_salt_monthly.nc WOA05_ptemp_salt_annual.nc
 
-mosaic: C180_mosaic/mosaic.tar
+mosaic: C180_mosaic/mosaic.tar 
 
 # Grid
 
@@ -73,6 +73,7 @@ tidal_amplitude.nc: DATA interpTides.py local
 C180_mosaic/mosaic.tar: topog.nc
 	(cd C180_mosaic;./create_c180_mosaic_and_rivers.csh)
 
+
 DATA: tpxo7_atlas_netcdf.tar.Z GEBCO_08_v2.nc
 	tar xzvf tpxo7_atlas_netcdf.tar.Z
 	touch DATA
@@ -106,7 +107,7 @@ frepp_local: MIDAS/README.md
 GEBCO_08_v2.nc :
 	ln -s /archive/gold/datasets/topography/$@ .
 
-md5sums.txt: ocean_hgrid.nc  interpolated_topog.nc topog.nc basin_codes.nc salt_restore.nc seawifs_1998-2006_smoothed_2X.nc tidal_amplitude.nc WOA05_ptemp_salt_monthly.nc WOA05_ptemp_salt_annual.nc
+md5sums.txt: ocean_hgrid.nc  interpolated_topog.nc topog.nc basin_codes.nc salt_restore.nc seawifs_1998-2006_smoothed_2X.nc tidal_amplitude.nc WOA05_ptemp_salt_monthly.nc WOA05_ptemp_salt_annual.nc C180_mosaic/mosaic.tar C180_mosaic/quick_mosaic.tar
 	echo Grids > $@
 	md5sum sgrid*.nc ocean_hgrid.nc >> $@
 	echo >> $@
@@ -122,3 +123,5 @@ md5sums.txt: ocean_hgrid.nc  interpolated_topog.nc topog.nc basin_codes.nc salt_
 	echo >> $@
 	echo Mosaic >> $@
 	md5sum C180_mosaic/mosaic.tar >> $@
+	echo Quick Mosaic >> $@
+	md5sum C180_mosaic/quick_mosaic.tar >> $@

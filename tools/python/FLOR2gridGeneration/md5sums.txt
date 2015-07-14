@@ -19,4 +19,6 @@ Obs
 e5978a20dcbe8d805a2aebc391fcbd19  WOA05_ptemp_salt_annual.nc
 
 Mosaic
-81fb565225853a256d16f31bd0b908cb  C180_mosaic/mosaic.tar
+1fafca1ef27bf971e5f647fb61a96f66  C180_mosaic/mosaic.tar
+Quick Mosaic
+e8ef943748cdcbd5e0ab2c61c8bb8cfc  C180_mosaic/quick_mosaic.tar
