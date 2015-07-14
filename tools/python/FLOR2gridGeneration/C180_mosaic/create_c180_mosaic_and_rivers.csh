@@ -15,4 +15,4 @@ rm -f hydrology*.nc
 (tar cvf mosaic.tar C180_grid* C180_mosaic* lake_frac* land_mask* ocean_hgrid* ocean_mask* ocean_mosaic* river_data* topog* grid_spec.nc)
 (mkdir quick_mosaic;cd quick_mosaic;make_quick_mosaic --mosaic_name grid_spec --input_mosaic ../grid_spec.nc)
 (cd quick_mosaic;ln -s ../C180_grid.tile*.nc .;ln -s ../C180_mosaic.nc .;ln -s ../lake_frac* .;ln -s ../river_data* .;ln -s ../topog.nc .)
-(cd quick_mosaic;tar cvf ../quick_mosaic.tar C180_grid* C180_mosaic* lake_frac* land_mask* ocean_mask* river_data* topog* atmos_mosaic* grid_spec.nc)
+(cd quick_mosaic;tar chvf ../quick_mosaic.tar C180_grid* C180_mosaic* lake_frac* land_mask* ocean_mask* river_data* topog* atmos_mosaic* land_mosaic* grid_spec.nc)
