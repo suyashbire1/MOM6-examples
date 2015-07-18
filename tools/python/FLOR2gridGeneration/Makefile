@@ -23,7 +23,7 @@ showenv:
 
 input: ocean_hgrid.nc topog.nc basin_codes.nc
 
-forcing: salt_restore.nc seawifs_1998-2006_smoothed_2X.nc tidal_amplitude.nc
+forcing: salt_restore.nc seawifs_1998-2006_smoothed_2X.nc tidal_amplitude.nc precip_factor.nc
 
 obs: WOA05_ptemp_salt_monthly.nc WOA05_ptemp_salt_annual.nc
 
@@ -62,6 +62,9 @@ WOA05_ptemp_salt_monthly.nc: ocean_hgrid.nc topog.nc /archive/gold/datasets/obs/
 salt_restore.nc: ocean_hgrid.nc topog.nc /archive/gold/datasets/obs/WOA05_pottemp_salt.nc interpSaltRestore.py local
 	unlimit stacksize; setenv PYTHONPATH ./local/lib/python; python interpSaltRestore.py
 	ncatted -h -a modulo,TIME,c,c,' ' salt_restore.nc
+
+precip_factor.nc: ocean_hgrid.nc  local
+	unlimit stacksize; setenv PYTHONPATH ./local/lib/python; python create_precip_scaled2d.py
 
 seawifs_1998-2006_smoothed_2X.nc: ocean_hgrid.nc topog.nc /archive/gold/datasets/global/siena_201204/INPUT/seawifs_1998-2006_GOLD_smoothed_2X.nc interpCHL.py local
 	unlimit stacksize; setenv PYTHONPATH ./local/lib/python; python interpCHL.py
