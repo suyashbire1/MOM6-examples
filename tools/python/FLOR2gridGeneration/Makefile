@@ -64,7 +64,7 @@ salt_restore.nc: ocean_hgrid.nc topog.nc /archive/gold/datasets/obs/WOA05_pottem
 	ncatted -h -a modulo,TIME,c,c,' ' salt_restore.nc
 
 precip_factor.nc: ocean_hgrid.nc  local
-	unlimit stacksize; setenv PYTHONPATH ./local/lib/python; python create_precip_scaled2d.py
+	unlimit stacksize; setenv PYTHONPATH ./local/lib/python; python create_precip_scale2d.py
 
 seawifs_1998-2006_smoothed_2X.nc: ocean_hgrid.nc topog.nc /archive/gold/datasets/global/siena_201204/INPUT/seawifs_1998-2006_GOLD_smoothed_2X.nc interpCHL.py local
 	unlimit stacksize; setenv PYTHONPATH ./local/lib/python; python interpCHL.py

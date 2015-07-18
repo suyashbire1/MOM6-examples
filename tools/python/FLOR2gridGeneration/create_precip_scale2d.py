@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import netCDF4 as nc
 import numpy as np
 
-f=nc.Dataset('/tmp/precip_factor.nc','w',format='NETCDF3_CLASSIC')
+f=nc.Dataset('precip_factor.nc','w',format='NETCDF3_CLASSIC')
 x=np.linspace(0.,360.,721)
 y=np.linspace(-90.,90.,361)
 X,Y=np.meshgrid(x,y)
