@@ -1,0 +1,10 @@
+6
+river_network.tile1.nc
+river_network.tile2.nc
+river_network.tile3.nc
+river_network.tile4.nc
+river_network.tile5.nc
+river_network.tile6.nc
+/archive/pcm/land_data/cover_lad/gigbp2_0ll.nc
+2.0
+
