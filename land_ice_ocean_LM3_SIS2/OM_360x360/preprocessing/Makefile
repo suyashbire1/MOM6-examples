@@ -110,6 +110,7 @@ fre_nctools:
 	echo $@
 	git clone git@gitlab.gfdl.noaa.gov:fre/fre-nctools.git $@
 	(cd $@; git checkout 168f6a5a2717bc80961da6ba751509cd8c7ace0d)
+	(cd $@; cd tools;git clone git@gitlab.gfdl.noaa.gov:Krista.A.Dunne/simple_hydrography.git; cd simple_hydrography;git checkout 62e2295e1be35406faca693eccc2881936ae84dd)
 
 fre_nctools/tools: fre_nctools
 fre_nctools/tools/make_hgrid/make_hgrid \
