@@ -1,0 +1,15 @@
+Grids
+ddc2e9574f758ba4fde36089596a5673  ocean_hgrid.nc
+
+Topography
+c68badad9d4744a72f6ec646d5ac09ec  topog.nc
+4e12a920d20af79a51d86b111155f55d  basin_codes.nc
+
+Data
+06737b9dee6ade5bb838f5ad1535fca8  seawifs_1998-2006_smoothed_2X.nc
+bf846caf3b7cb2ad6b179ceb28b7093b  tidal_amplitude.nc
+
+Obs
+024606976c5e465739784009298959b8  WOA05_ptemp_salt_monthly.nc
+15b421abf28aab5d5d5bccd37db3e13d  WOA05_ptemp_salt_annual.nc
+

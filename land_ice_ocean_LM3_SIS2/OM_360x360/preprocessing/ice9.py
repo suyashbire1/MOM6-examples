@@ -63,9 +63,13 @@ def applyIce9(fileName, nFileName, variable, x0, y0, shallow, analyze):
   rg.createDimension('nx',nx)
   rg.createDimension('ny',ny)
   rgDepth = rg.createVariable('depth','f4',('ny','nx'))
+  rgDeptho = rg.createVariable('deptho','f4',('ny','nx'))  
   rgDepth.units = iDepth.units
   rgDepth.standard_name = 'depth below geoid'
-  rgDepth.description = 'Non-negative nominal thickness of the ocean at cell centers'
+  rgDepth.description = 'Non-negative nominal thickness of the ocean at cell centers (excluding ice shelf cavities)'
+  rgDeptho.units = iDepth.units
+  rgDeptho.standard_name = 'depth below geoid'
+  rgDeptho.description = 'Non-negative nominal thickness of the ocean at cell centers (including ice shelf cavities)'
   rg.createDimension('ntiles',1)
 
   # A mask based solely on value of depth
@@ -86,7 +90,7 @@ def applyIce9(fileName, nFileName, variable, x0, y0, shallow, analyze):
   rgWet.description = 'Values: 1=Ocean, 0=Land'
   rgWet[:] = notLand # + (1-notLand)*0.3*np.where( depth<0, 1, 0)
 
-  rgDepth[:] = depth*notLand
+
 
   if 'std' in iRg.variables: # 
     rgH2 = rg.createVariable('h2','f4',('ny','nx'))
@@ -94,19 +98,25 @@ def applyIce9(fileName, nFileName, variable, x0, y0, shallow, analyze):
     rgH2.standard_name = 'Variance of sub-grid scale topography'
     rgH2[:] = iRg.variables['std'][:]**2
 
+  ice_shelf_mask = np.zeros(depth.shape)
+    
   if 'ice_shelf_thickness' in iRg.variables:
     rgIST = rg.createVariable('ice_shelf_thickness','f4',('ny','nx'))
     rgIST.units = 'm'
     rgIST.standard_name = 'Floating ice shelf thickness'
     rgIST[:] = iRg.variables['ice_shelf_thickness'][:]
-
+    ice_shelf_mask[rgIST[:]>0.]=1.0
+    
   if 'ice_shelf_area' in iRg.variables:
     rgISA = rg.createVariable('ice_shelf_area','f4',('ny','nx'))
     rgISA.units = 'm^2'
     rgISA.standard_name = 'Floating ice shelf area'
     rgISA[:] = iRg.variables['ice_shelf_area'][:]
     
-    
+  rgDepth[:] = depth*(notLand)*(1.0-ice_shelf_mask)
+  rgDeptho[:] = depth*(notLand)
+  
+  
   if 'zEdit' in iRg.variables: # Need to copy over list of edits
     rgMod = rg.createVariable('modified_mask','f4',('ny','nx'))
     rgMod.long_name = 'Modified mask'

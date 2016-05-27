@@ -14,13 +14,13 @@ grid.wet[grid.D>0.]=1
 S=state(grid=grid)
 
 # Model vertical grid
-#dz=nc.Dataset('../../../examples/ocean_SIS/OM4_025/INPUT/vgrid_75_2m.nc').variables['dz'][:]
-#nk = dz.shape[0]
-#zi=np.zeros(nk+1)
-#zi[1:]=np.cumsum(-dz)
+dz=nc.Dataset('vgrid_75_2m.nc').variables['dz'][:]
+nk = dz.shape[0]
+zi=np.zeros(nk+1)
+zi[1:]=np.cumsum(-dz)
 # Analysis vertical  grid
-zi=-nc.Dataset('../../../ice_ocean_SIS/OM4_025/INPUT/vgrid_75_2m.nc').variables['zw'][:]
-nk=zi.shape[0]-1
+#zi=-nc.Dataset('vgrid_75_2m.nc').variables['zw'][:]
+#nk=zi.shape[0]-1
 
 zb =np.zeros((nk+1,S.grid.jm,S.grid.im))
 for k in range(0,nk+1):
