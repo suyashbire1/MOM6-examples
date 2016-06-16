@@ -94,5 +94,26 @@ gridB.write_nc('sgridB.nc')
 
 
 
+#### Begin Antarctic Cap
 
+r0_pole = 0.20
+lon0_pole = 100.0
+doughnut = 0.12
+ny_scap = 20
+lat0_sp = gridA.y.min()
+
+lenlat=90.0+gridA.y.min()
+
+x=gridA.x[0,:]
+y=np.linspace(-90.,lat0_sp,ny_scap+1)
+X,Y=np.meshgrid(x,y)
+
+#antarctic_cap=supergrid(nx,ny_scap,'spherical','degrees',-90.,lenlat,lon0,lenlon,displace_pole=True,r0_pole=r0_pole,lon0_pole=lon0_pole,doughnut=doughnut)
+antarctic_cap=supergrid(xdat=X,ydat=Y,axis_units='degrees',displace_pole=True,r0_pole=r0_pole,lon0_pole=lon0_pole,doughnut=doughnut)                  
+
+antarctic_cap.grid_metrics()
+antarctic_cap.write_nc('sgrid0.nc')
+
+
+print "generated a southern cap of size (ny,nx)= ",antarctic_cap.y.shape[0]-1,antarctic_cap.y.shape[1]-1
 
