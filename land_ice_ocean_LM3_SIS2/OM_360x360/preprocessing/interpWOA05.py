@@ -14,7 +14,7 @@ grid.wet[grid.D>0.]=1
 S=state(grid=grid)
 
 # Model vertical grid
-dz=nc.Dataset('vgrid_75_2m.nc').variables['dz'][:]
+dz=nc.Dataset('INPUT/vgrid_75_2m.nc').variables['dz'][:]
 nk = dz.shape[0]
 zi=np.zeros(nk+1)
 zi[1:]=np.cumsum(-dz)
