@@ -3,7 +3,7 @@ A collection of useful functions...
 """
 import numpy as np
 import tarfile
-from scipy.io import netcdf
+#from scipy.io import netcdf
 
 def section2quadmesh(x, z, q, representation='pcm'):
   """
