@@ -165,12 +165,12 @@ mosaic_c48.360x360/mosaic.nc: mosaic_ocean.360x360/ocean_mosaic.nc topog.nc $(FR
 	(cd $(@D); source activate MIDAS;export LD_LIBRARY_PATH=$(CONDA_ENV_PATH)/lib;../$(FRE_NCTOOLS)/simple_hydrography/rmv_parallel_rivers < ../rnfs.txt)
 	(cd $(@D); source activate MIDAS;export LD_LIBRARY_PATH=$(CONDA_ENV_PATH)/lib;../$(FRE_NCTOOLS)/simple_hydrography/cp_river_vars < ../rnfs.txt)
 	(cd $(@D); source activate MIDAS;export LD_LIBRARY_PATH=$(CONDA_ENV_PATH)/lib; touch input.nml;../$(FRE_NCTOOLS)/simple_hydrography/cr_lake_files < ../rnfs2.txt)
-	(cd $(@D); source activate NCO; mv river_network.tile1.nc hydrography.tile1.nc; ncks -A -a -v  lake_frac,lake_depth_sill,lake_tau,WaterBod,PWetland,connected_to_next,whole_lake_area,max_slope_to_next lake_frac.tile1.nc hydrography.tile1.nc)
-	(cd $(@D); source activate NCO; mv river_network.tile2.nc hydrography.tile2.nc; ncks -A -a -v  lake_frac,lake_depth_sill,lake_tau,WaterBod,PWetland,connected_to_next,whole_lake_area,max_slope_to_next lake_frac.tile2.nc hydrography.tile2.nc)
-	(cd $(@D); source activate NCO; mv river_network.tile3.nc hydrography.tile3.nc; ncks -A -a -v  lake_frac,lake_depth_sill,lake_tau,WaterBod,PWetland,connected_to_next,whole_lake_area,max_slope_to_next lake_frac.tile3.nc hydrography.tile3.nc)
-	(cd $(@D); source activate NCO; mv river_network.tile4.nc hydrography.tile4.nc; ncks -A -a -v  lake_frac,lake_depth_sill,lake_tau,WaterBod,PWetland,connected_to_next,whole_lake_area,max_slope_to_next lake_frac.tile4.nc hydrography.tile4.nc)
-	(cd $(@D); source activate NCO; mv river_network.tile5.nc hydrography.tile5.nc; ncks -A -a -v  lake_frac,lake_depth_sill,lake_tau,WaterBod,PWetland,connected_to_next,whole_lake_area,max_slope_to_next lake_frac.tile5.nc hydrography.tile5.nc)
-	(cd $(@D); source activate NCO; mv river_network.tile6.nc hydrography.tile6.nc; ncks -A -a -v  lake_frac,lake_depth_sill,lake_tau,WaterBod,PWetland,connected_to_next,whole_lake_area,max_slope_to_next lake_frac.tile6.nc hydrography.tile6.nc)
+	(cd $(@D); source activate NCO; mv river_network.tile1.nc river_data.tile1.nc; ncks -A -a -v  lake_frac,lake_depth_sill,lake_tau,WaterBod,PWetland,connected_to_next,whole_lake_area,max_slope_to_next lake_frac.tile1.nc hydrography.tile1.nc)
+	(cd $(@D); source activate NCO; mv river_network.tile2.nc river_data.tile2.nc; ncks -A -a -v  lake_frac,lake_depth_sill,lake_tau,WaterBod,PWetland,connected_to_next,whole_lake_area,max_slope_to_next lake_frac.tile2.nc hydrography.tile2.nc)
+	(cd $(@D); source activate NCO; mv river_network.tile3.nc river_data.tile3.nc; ncks -A -a -v  lake_frac,lake_depth_sill,lake_tau,WaterBod,PWetland,connected_to_next,whole_lake_area,max_slope_to_next lake_frac.tile3.nc hydrography.tile3.nc)
+	(cd $(@D); source activate NCO; mv river_network.tile4.nc river_data.tile4.nc; ncks -A -a -v  lake_frac,lake_depth_sill,lake_tau,WaterBod,PWetland,connected_to_next,whole_lake_area,max_slope_to_next lake_frac.tile4.nc hydrography.tile4.nc)
+	(cd $(@D); source activate NCO; mv river_network.tile5.nc river_data.tile5.nc; ncks -A -a -v  lake_frac,lake_depth_sill,lake_tau,WaterBod,PWetland,connected_to_next,whole_lake_area,max_slope_to_next lake_frac.tile5.nc hydrography.tile5.nc)
+	(cd $(@D); source activate NCO; mv river_network.tile6.nc river_data.tile6.nc; ncks -A -a -v  lake_frac,lake_depth_sill,lake_tau,WaterBod,PWetland,connected_to_next,whole_lake_area,max_slope_to_next lake_frac.tile6.nc hydrography.tile6.nc)
 	(cd $(@D); python ../check_land.py > river_check.txt)
 
 
