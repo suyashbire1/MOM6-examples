@@ -1,16 +1,21 @@
-#!/usr/bin/env python
-
-from midas.rectgrid import *
-import netCDF4 as nc
+import midas
 import numpy as np
+import netCDF4 as nc
 
-sgrid=supergrid(file='ocean_hgrid.nc')
-grid=quadmesh(supergrid=sgrid,cyclic=True)
-ogrid=quadmesh('/archive/gold/datasets/global/siena_201204/INPUT/seawifs_1998-2006_GOLD_smoothed_2X.nc',var='CHL_A',cyclic=True)
-O=state('/archive/gold/datasets/global/siena_201204/INPUT/seawifs_1998-2006_GOLD_smoothed_2X.nc',grid=ogrid,fields=['CHL_A'])
-O.var_dict['CHL_A']['Z']=None
-OM=O.horiz_interp('CHL_A',target=grid,method='bilinear')
-OM.rename_field('CHL_A','chl_a')
-OM.var_dict['chl_a']['xax_data']=grid.x_T[0,:]
-OM.var_dict['chl_a']['yax_data']=grid.y_T[:,grid.im/4]
-OM.write_nc('seawifs_1998-2006_smoothed_2X.nc',fields=['chl_a'])
+path_seawifs='SeaWiFS_Non_Elnino_clim.nc'
+grid=midas.rectgrid.quadmesh(path_seawifs,cyclic=True,var='chl')
+sgrid = midas.rectgrid.supergrid(file='ocean_hgrid.nc',cyclic_x=True,tripolar_n=True)
+grid2=midas.rectgrid.quadmesh(supergrid=sgrid)
+C=midas.rectgrid.state(path=path_seawifs,grid=grid,fields=['chl'])
+grid2.D=nc.Dataset('topog.nc').variables['depth'][:]
+grid2.wet[grid2.D==0.]=0
+C2=C.horiz_interp('chl',target=grid2)
+chl_tav=np.mean(C2.chl,axis=0)
+chl_tav=chl_tav[np.newaxis,:,:,:]
+C2.chl=np.ma.filled(C2.chl,chl_tav)
+C2.chl=np.ma.filled(C2.chl,1.e-3)
+C2.var_dict['chl']['xax_data']=grid2.x_T[grid2.jm/2,:]
+C2.var_dict['chl']['yax_data']=grid2.y_T[:,grid2.im/4]
+C2.var_dict['chl']['calendar']='julian'
+path_out='seawifs.nc'
+C2.write_nc(path_out,['chl'])
