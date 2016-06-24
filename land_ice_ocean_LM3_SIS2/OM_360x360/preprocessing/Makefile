@@ -12,7 +12,7 @@
 SHELL=bash -f
 NP=8
 
-all: input forcing obs c48_mosaic
+all: input forcing obs ocean_mosaic c48_mosaic
 	md5sum -c md5sums.txt
 
 showenv:
@@ -123,6 +123,7 @@ C48_MOSAIC = $(foreach f,C48_grid.tile1.nc C48_grid.tile2.nc C48_grid.tile3.nc C
                          land_mask_tile1.cdl land_mask_tile2.cdl land_mask_tile3.cdl land_mask_tile4.cdl land_mask_tile5.cdl land_mask_tile6.cdl\
                          mosaic.cdl ocean_mask.cdl hydrography.tile1.nc hydrography.tile2.nc hydrography.tile3.nc hydrography.tile4.nc hydrography.tile5.nc\
                          hydrography.tile6.nc,mosaic_c48.360x360/$f)
+
 C96_MOSAIC = $(foreach f,C96_grid.tile1.nc C96_grid.tile2.nc C96_grid.tile3.nc C96_grid.tile4.nc C96_grid.tile5.nc C96_grid.tile6.nc C96_mosaic.nc\
                          C96_mosaic_tile1XC96_mosaic_tile1.cdl C96_mosaic_tile1Xocean_mosaic_tile1.cdl C96_mosaic_tile2XC96_mosaic_tile2.cdl C96_mosaic_tile2Xocean_mosaic_tile1.cdl\
                          C96_mosaic_tile3XC96_mosaic_tile3.cdl C96_mosaic_tile3Xocean_mosaic_tile1.cdl C96_mosaic_tile4XC96_mosaic_tile4.cdl C96_mosaic_tile4Xocean_mosaic_tile1.cdl\
@@ -142,7 +143,7 @@ c96_mosaic: $(C96_MOSAIC)
 c192_mosaic: $(C192_MOSAIC)
 
 $(filter-out mosaic_ocean.360x360/grid_spec.nc mosaic_ocean.360x360/ocean_mosaic.nc,$(OCN_MOSAIC:.cdl=.nc)): mosaic_ocean.360x360/grid_spec.nc
-mosaic_ocean.360x360/ocean_mosaic.nc: ocean_hgrid.nc topog.nc $(FRE_NCTOOLS)/make_solo_mosaic/make_solo_mosaic 
+mosaic_ocean.360x360/ocean_mosaic.nc: ocean_hgrid.nc topog.nc $(FRE_NCTOOLS)/make_solo_mosaic/make_solo_mosaic  $(FRE_NCTOOLS)/make_quick_mosaic/make_quick_mosaic
 	mkdir -p $(@D)
 	(cd $(@D); ln -sf ../ocean_hgrid.nc ../topog.nc .)
 	(cd $(@D); source activate MIDAS; ../$(FRE_NCTOOLS)/make_solo_mosaic/make_solo_mosaic --num_tiles 1 --dir . --mosaic_name ocean_mosaic --tile_file ocean_hgrid.nc --periodx 360.)
