@@ -67,8 +67,6 @@ seawifs.nc: ocean_hgrid.nc topog.nc /archive/mjh/gold/datasets/obs/SeaWifs/SeaWi
 tidal_amplitude.nc: DATA interpTides.py 
 	ulimit; source activate MIDAS; python interpTides.py
 
-#C180_mosaic/mosaic.tar: topog.nc
-#	(cd C180_mosaic;./create_c180_mosaic_and_rivers.csh)
 
 
 DATA: tpxo7_atlas_netcdf.tar.Z GEBCO_08_v2.nc bedmap2.nc
