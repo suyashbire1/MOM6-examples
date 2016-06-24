@@ -2,11 +2,11 @@ Grids
 4e8657526748cf9495eac24bf0dce4b3  ocean_hgrid.nc
 
 Topography
-c90bc5b4f198fb761a8a84343c96fd81  topog.nc
+d42a604029da80d503457a740c72f6aa  topog.nc
 1d2522a437fce6ec857e7b21d784ab61  basin_codes.nc
 
 Data
-1f5041d816b625d5e61f42fb0fe3e6ef  seawifs.nc
+78f73e56f341508ff73a7c4b17956aab  seawifs.nc
 e262eeb50bc4935b88bbe4520f37cdd5  tidal_amplitude.nc
 
 Obs

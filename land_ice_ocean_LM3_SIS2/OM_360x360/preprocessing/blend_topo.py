@@ -106,7 +106,7 @@ draft_ice = thick*dens_ice/dens_ocn
 tmp=depth.copy()
 tmp[draft_ice>-depth]=-(draft_ice[draft_ice>-depth]+min_ice_cavity_clearance)
 depth[draft_ice>0.]=tmp[draft_ice>0.]
-TOPO=state('interpolated_topog.nc',grid=grid,fields=['depth'])
+TOPO=state('interpolated_topog.nc',grid=grid,fields=['depth','std'])
 vdict=TOPO.var_dict['depth'].copy()
 TOPO.depth = -depth[np.newaxis,np.newaxis,:]
 TOPO.add_field_from_array(thick[np.newaxis,np.newaxis,:],'ice_shelf_thickness',var_dict=vdict)
@@ -137,5 +137,5 @@ fnam='output_topog.nc'
 #Make sure ice shelf mask is consistent
 TOPO.ice_shelf_thickness[TOPO.depth<=0.0]=0.0
 TOPO.ice_shelf_area[TOPO.depth<=0.0]=0.0
-TOPO.write_nc(fnam,['depth','ice_shelf_thickness','ice_shelf_area'])
+TOPO.write_nc(fnam,['depth','std','ice_shelf_thickness','ice_shelf_area'])
 

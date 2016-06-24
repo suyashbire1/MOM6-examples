@@ -29,7 +29,7 @@ def plot_river(bmap,P):
 
 for tile in np.arange(1,7):
 
-  path='hydrography.tile'+str(tile)+'.nc'
+  path='river_data.tile'+str(tile)+'.nc'
   tocell=nc.Dataset(path).variables['tocell'][:]
   x=nc.Dataset(path).variables['x'][:]
   y=nc.Dataset(path).variables['y'][:]
