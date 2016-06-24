@@ -33,7 +33,9 @@ for tile in np.arange(1,7):
   tocell=nc.Dataset(path).variables['tocell'][:]
   x=nc.Dataset(path).variables['x'][:]
   y=nc.Dataset(path).variables['y'][:]
+  path='river_output.tile'+str(tile)+'.nc'  
   land_frac=nc.Dataset(path).variables['land_frac'][:]
+  path='hydrography.tile'+str(tile)+'.nc'    
   lake_frac=nc.Dataset(path).variables['lake_frac'][:]
   ylen=x.shape[0]
   xlen=x.shape[1]

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 
 #============================================================
 # Generate tiles for the northern/southern caps
