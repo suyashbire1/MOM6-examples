@@ -225,7 +225,7 @@ CHANNEL_CONFIG = "list"         ! default = "none"
                                 !       test case.
                                 !     file - Read open face widths everywhere from a
                                 !       NetCDF file on the model grid.
-CHANNEL_LIST_FILE = "MOM_channels_FLOR" ! default = "MOM_channel_list"
+CHANNEL_LIST_FILE = "MOM_channels" ! default = "MOM_channel_list"
                                 ! The file from which the list of narrowed channels is read.
 WRITE_GEOM = 0                  ! default = 1
                                 ! If =0, never write the geometry and vertical grid files.
@@ -618,7 +618,7 @@ VAR_PEN_SW = True               !   [Boolean] default = False
                                 ! If true, use one of the CHL_A schemes specified by
                                 ! OPACITY_SCHEME to determine the e-folding depth of
                                 ! incoming short wave radiation.
-CHL_FILE = "seawifs_1998-2006_smoothed_2X.nc" !
+CHL_FILE = "seawifs.nc" !
                                 ! CHL_FILE is the file containing chl_a concentrations in
                                 ! the variable CHL_A. It is used when VAR_PEN_SW and
                                 ! CHL_FROM_FILE are true.
