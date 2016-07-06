@@ -23,7 +23,7 @@ showenv:
 
 input: ocean_hgrid.nc topog.nc basin_codes.nc
 
-forcing: salt_restore.nc seawifs_1998-2006_smoothed_2X.nc tidal_amplitude.nc precip_factor.nc
+forcing: seawifs_1998-2006_smoothed_2X.nc tidal_amplitude.nc precip_factor.nc
 
 obs: WOA05_ptemp_salt_monthly.nc WOA05_ptemp_salt_annual.nc
 
@@ -87,7 +87,7 @@ tpxo7_atlas_netcdf.tar.Z:
 
 MIDAS:
 	git clone https://github.com/mjharriso/MIDAS.git
-
+	(cd MIDAS;git checkout 037f21a)
 # Submodule method for obtaining MIDAS (used by frepp_local target) 
 MIDAS/README.md:
 	(cd ../../..; git submodule init tools/python/025gridGeneration/MIDAS)
