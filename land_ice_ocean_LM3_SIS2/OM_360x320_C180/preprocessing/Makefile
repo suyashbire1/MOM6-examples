@@ -23,7 +23,7 @@ showenv:
 
 input: ocean_hgrid.nc topog.nc basin_codes.nc
 
-forcing: seawifs_1998-2006_smoothed_2X.nc tidal_amplitude.nc precip_factor.nc
+forcing: seawifs_1998-2006_smoothed_2X.nc tidal_amplitude.nc 
 
 obs: WOA05_ptemp_salt_monthly.nc WOA05_ptemp_salt_annual.nc
 
