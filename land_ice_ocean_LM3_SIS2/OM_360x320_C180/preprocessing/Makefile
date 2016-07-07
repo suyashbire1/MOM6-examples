@@ -59,13 +59,6 @@ WOA05_ptemp_salt_monthly.nc: ocean_hgrid.nc topog.nc /archive/gold/datasets/obs/
 	unlimit stacksize; setenv PYTHONPATH ./local/lib/python; python interpWOA05.py
 	ncatted -h -a modulo,TIME,c,c,' ' WOA05_ptemp_salt_monthly.nc
 
-salt_restore.nc: ocean_hgrid.nc topog.nc /archive/gold/datasets/obs/WOA05_pottemp_salt.nc interpSaltRestore.py local
-	unlimit stacksize; setenv PYTHONPATH ./local/lib/python; python interpSaltRestore.py
-	ncatted -h -a modulo,TIME,c,c,' ' salt_restore.nc
-
-precip_factor.nc: ocean_hgrid.nc  local
-	unlimit stacksize; setenv PYTHONPATH ./local/lib/python; python create_precip_scale2d.py
-
 seawifs_1998-2006_smoothed_2X.nc: ocean_hgrid.nc topog.nc /archive/gold/datasets/global/siena_201204/INPUT/seawifs_1998-2006_GOLD_smoothed_2X.nc interpCHL.py local
 	unlimit stacksize; setenv PYTHONPATH ./local/lib/python; python interpCHL.py
 	ncatted -h -a modulo,TIME,c,c,' ' seawifs_1998-2006_smoothed_2X.nc
@@ -110,7 +103,7 @@ frepp_local: MIDAS/README.md
 GEBCO_08_v2.nc :
 	ln -s /archive/gold/datasets/topography/$@ .
 
-md5sums.txt: ocean_hgrid.nc  interpolated_topog.nc topog.nc basin_codes.nc salt_restore.nc seawifs_1998-2006_smoothed_2X.nc tidal_amplitude.nc WOA05_ptemp_salt_monthly.nc WOA05_ptemp_salt_annual.nc C180_mosaic/mosaic.tar C180_mosaic/quick_mosaic.tar
+md5sums.txt: ocean_hgrid.nc  interpolated_topog.nc topog.nc basin_codes.nc seawifs_1998-2006_smoothed_2X.nc tidal_amplitude.nc WOA05_ptemp_salt_monthly.nc WOA05_ptemp_salt_annual.nc C180_mosaic/mosaic.tar C180_mosaic/quick_mosaic.tar
 	echo Grids > $@
 	md5sum sgrid*.nc ocean_hgrid.nc >> $@
 	echo >> $@
@@ -119,7 +112,7 @@ md5sums.txt: ocean_hgrid.nc  interpolated_topog.nc topog.nc basin_codes.nc salt_
 	md5sum basin_codes.nc >> $@
 	echo >> $@
 	echo Data >> $@
-	md5sum salt_restore.nc seawifs_1998-2006_smoothed_2X.nc tidal_amplitude.nc >> $@
+	md5sum seawifs_1998-2006_smoothed_2X.nc tidal_amplitude.nc >> $@
 	echo >> $@
 	echo Obs >> $@
 	md5sum WOA05_ptemp_salt_{monthly,annual}.nc >> $@
