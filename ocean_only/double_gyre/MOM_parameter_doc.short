@@ -152,6 +152,8 @@ THICKNESS_CONFIG = "uniform"    !
                                 !     sloshing - TBD AJA.
                                 !     seamount - TBD AJA.
                                 !     rossby_front - a mixed layer front in thermal wind balance.
+                                !     BFB - uniform thickness till the depth of abyssal layer for
+                                !       buoy-forced basin case.
                                 !     USER - call a user modified routine.
 
 ! === module MOM_diag_mediator ===
