@@ -27,4 +27,11 @@
 	url = https://github.com/NOAA-GFDL/land_null.git
 [submodule "src/mkmf"]
 	path = src/mkmf
+<<<<<<< HEAD
 url = https://github.com/NOAA-GFDL/mkmf.git
+=======
+	url = https://github.com/NOAA-GFDL/mkmf.git
+[submodule "tools/analysis/mpl-cmocean"]
+	path = tools/analysis/mpl-cmocean
+	url = https://github.com/matplotlib/cmocean.git
+>>>>>>> 0ec2697836788705fa29cd2c1fff36a422221152
