@@ -232,6 +232,8 @@ USE_OCMIP2_CFC = False          !   [Boolean] default = False
 USE_generic_tracer = False      !   [Boolean] default = False
                                 ! If true and _USE_GENERIC_TRACER is defined as a
                                 ! preprocessor macro, use the MOM_generic_tracer packages.
+USE_PSEUDO_SALT_TRACER = False  !   [Boolean] default = False
+                                ! If true, use the pseudo salt tracer, typically run as a diagnostic.
 
 ! === module ideal_age_example ===
 DO_IDEAL_AGE = True             !   [Boolean] default = True
@@ -294,6 +296,7 @@ TOPO_CONFIG = "file"            !
                                 !     DOME2D - use a shelf and slope configuration for the
                                 !       DOME2D gravity current/overflow test case.
                                 !     seamount - Gaussian bump for spontaneous motion test case.
+                                !     supercritical - flat but with 8.95 degree land mask.
                                 !     Phillips - ACC-like idealized topography used in the Phillips config.
                                 !     USER - call a user modified routine.
 TOPO_FILE = "topog.nc"          ! default = "topog.nc"
@@ -312,24 +315,8 @@ MINIMUM_DEPTH = 9.5             !   [m] default = 0.0
 
 ! === module MOM_open_boundary ===
 ! Controls where open boundaries are located, what kind of boundary condition to impose, and what data to apply, if any.
-APPLY_OBC_U = False             !   [Boolean] default = False
-                                ! If true, open boundary conditions may be set at some
-                                ! u-points, with the configuration controlled by OBC_CONFIG
-APPLY_OBC_V = False             !   [Boolean] default = False
-                                ! If true, open boundary conditions may be set at some
-                                ! v-points, with the configuration controlled by OBC_CONFIG
-APPLY_OBC_U_FLATHER_EAST = False !   [Boolean] default = False
-                                ! Apply a Flather open boundary condition on the eastern
-                                ! side of the global domain
-APPLY_OBC_U_FLATHER_WEST = False !   [Boolean] default = False
-                                ! Apply a Flather open boundary condition on the western
-                                ! side of the global domain
-APPLY_OBC_V_FLATHER_NORTH = False !   [Boolean] default = False
-                                ! Apply a Flather open boundary condition on the northern
-                                ! side of the global domain
-APPLY_OBC_V_FLATHER_SOUTH = False !   [Boolean] default = False
-                                ! Apply a Flather open boundary condition on the southern
-                                ! side of the global domain
+OBC_NUMBER_OF_SEGMENTS = 0      ! default = 0
+                                ! The number of open boundary segments.
 MASKING_DEPTH = 0.0             !   [m] default = -9999.0
                                 ! The depth below which to mask points as land points, for which all
                                 ! fluxes are zeroed out. MASKING_DEPTH is ignored if negative.
@@ -568,6 +555,7 @@ VELOCITY_CONFIG = "zero"        ! default = "zero"
                                 !     uniform - the flow is uniform (determined by
                                 !       parameters INITIAL_U_CONST and INITIAL_V_CONST).
                                 !     rossby_front - a mixed layer front in thermal wind balance.
+                                !     soliton - Equatorial Rossby soliton.
                                 !     USER - call a user modified routine.
 CONVERT_THICKNESS_UNITS = False !   [Boolean] default = False
                                 ! If true,  convert the thickness initial conditions from
@@ -892,7 +880,7 @@ UPWIND_1ST_CONTINUITY = False   !   [Boolean] default = False
                                 ! If true, CONTINUITY_PPM becomes a 1st-order upwind
                                 ! continuity solver.  This scheme is highly diffusive
                                 ! but may be useful for debugging or in single-column
-                                ! mode where its minimal stensil is useful.
+                                ! mode where its minimal stencil is useful.
 ETA_TOLERANCE = 1.0E-06         !   [m] default = 3.75E-09
                                 ! The tolerance for the differences between the
                                 ! barotropic and baroclinic estimates of the sea surface
@@ -1304,6 +1292,8 @@ KD_BBL_TR = 0.0                 !   [m2 s-1] default = 0.0
                                 ! allow for explicitly specified bottom fluxes. The
                                 ! entrainment at the bottom is at least sqrt(Kd_BBL_tr*dt)
                                 ! over the same distance.
+TRACER_TRIDIAG = False          !   [Boolean] default = False
+                                ! If true, use the passive tracer tridiagonal solver for T and S
 DIAG_MLD_DENSITY_DIFF = 0.1     !   [kg/m3] default = 0.1
                                 ! The density difference used to determine a diagnostic mixed
                                 ! layer depth, MLD_user, following the definition of Levitus 1982.
@@ -1647,6 +1637,9 @@ EKMAN_SCALE_COEF = 1.0          !   [units=nondim] default = 1.0
                                 ! A nondimensional scaling factor controlling the inhibition
                                 ! of the diffusive length scale by rotation. Making this larger
                                 ! decreases the PBL diffusivity.
+USE_MLD_ITERATION = False       !   [Boolean] default = False
+                                ! A logical that determines whether or not to use the
+                                ! MLD to set the EPBL length scale.
 
 ! === module MOM_regularize_layers ===
 REGULARIZE_SURFACE_LAYERS = False !   [Boolean] default = False
