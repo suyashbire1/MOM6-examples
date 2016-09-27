@@ -3,7 +3,7 @@
 "prog_%4yr_%3dy",     5,"days",1,"days","Time",365,"days"
 "ave_prog_%4yr_%3dy", 5,"days",1,"days","Time",365,"days"
 "cont_%4yr_%3dy",     5,"days",1,"days","Time",365,"days"
-#"mom_%4yr_%3dy",      5,"days",1,"days","Time",10,"days"
+"mom_%4yr_%3dy",      5,"days",1,"days","Time",10,"days"
 #"bt_mom_%4yr_%3dy",   5,"days",1,"days","Time",10,"days"
 #"visc_%4yr_%3dy",     5,"days",1,"days","Time",10,"days"
 #"energy_%4yr_%3dy",   5,"days",1,"days","Time",10,"days"
@@ -19,8 +19,13 @@
 "ocean_model","v","v","prog_%4yr_%3dy","all",.false.,"none",2
 "ocean_model","h","h","prog_%4yr_%3dy","all",.false.,"none",1
 "ocean_model","e","e","prog_%4yr_%3dy","all",.false.,"none",2
-"ocean_model","twa_test0","twa_test0","prog_%4yr_%3dy","all",.false.,"none",2
-"ocean_model","twa_test1","twa_test1","prog_%4yr_%3dy","all",.false.,"none",2
+"ocean_model","twa_hmfu","twa_hmfu","prog_%4yr_%3dy","all",.false.,"none",2
+"ocean_model","twa_hpfu","twa_hpfu","prog_%4yr_%3dy","all",.false.,"none",2
+"ocean_model","twa_huwb","twa_huwb","prog_%4yr_%3dy","all",.false.,"none",2
+"ocean_model","twa_huuxpt","twa_huuxpt","prog_%4yr_%3dy","all",.false.,"none",2
+"ocean_model","twa_huvymt","twa_huvymt","prog_%4yr_%3dy","all",.false.,"none",2
+"ocean_model","twa_hdudtvisc","twa_hdudtvisc","prog_%4yr_%3dy","all",.false.,"none",2
+"ocean_model","twa_hdiffu","twa_hdiffu","prog_%4yr_%3dy","all",.false.,"none",2
 #"ocean_model","temp","temp","prog_%4yr_%3dy","all",.false.,"none",2
 #"ocean_model","salt","salt","prog_%4yr_%3dy","all",.false.,"none",2
 #"ocean_model","Rml","Rml","prog_%4yr_%3dy","all",.false.,"none",2
@@ -40,7 +45,7 @@
 # Continuity Equation Terms:
 #===========================
 #"ocean_model","dhdt","dhdt","cont_%4yr_%3dy","all",.true.,"none",2
-#"ocean_model","wd","wd","cont_%4yr_%3dy","all",.true.,"none",2
+"ocean_model","wd","wd","cont_%4yr_%3dy","all",.true.,"none",2
 "ocean_model","uh","uh","cont_%4yr_%3dy","all",.true.,"none",2
 "ocean_model","vh","vh","cont_%4yr_%3dy","all",.true.,"none",2
 #"ocean_model","uhGM","uhGM","cont_%4yr_%3dy","all",.true.,"none",2
@@ -77,17 +82,17 @@
 #"ocean_model","CAv","CAv","mom_%4yr_%3dy","all",.true.,"none",2
 #"ocean_model","PFu","PFu","mom_%4yr_%3dy","all",.true.,"none",2
 #"ocean_model","PFv","PFv","mom_%4yr_%3dy","all",.true.,"none",2
-#"ocean_model","du_dt_visc","du_dt_visc","mom_%4yr_%3dy","all",.true.,"none",2
+"ocean_model","du_dt_visc","du_dt_visc","mom_%4yr_%3dy","all",.true.,"none",2
 #"ocean_model","dv_dt_visc","dv_dt_visc","mom_%4yr_%3dy","all",.true.,"none",2
 #"ocean_model","diffu","diffu","mom_%4yr_%3dy","all",.true.,"none",2
 #"ocean_model","diffv","diffv","mom_%4yr_%3dy","all",.true.,"none",2
-#"ocean_model","dudt_dia","dudt_dia","mom_%4yr_%3dy","all",.true.,"none",2
+"ocean_model","dudt_dia","dudt_dia","mom_%4yr_%3dy","all",.true.,"none",2
 #"ocean_model","dvdt_dia","dvdt_dia","mom_%4yr_%3dy","all",.true.,"none",2
 # Subterms that should not be added to a closed budget.
-#"ocean_model","gKEu","gKEu","mom_%4yr_%3dy","all",.true.,"none",2
+"ocean_model","gKEu","gKEu","mom_%4yr_%3dy","all",.true.,"none",2
 #"ocean_model","gKEv","gKEv","mom_%4yr_%3dy","all",.true.,"none",2
 #"ocean_model","rvxu","rvxu","mom_%4yr_%3dy","all",.true.,"none",2
-#"ocean_model","rvxv","rvxv","mom_%4yr_%3dy","all",.true.,"none",2
+"ocean_model","rvxv","rvxv","mom_%4yr_%3dy","all",.true.,"none",2
 #"ocean_model","PFu_bc","PFu_bc","mom_%4yr_%3dy","all",.true.,"none",2
 #"ocean_model","PFv_bc","PFv_bc","mom_%4yr_%3dy","all",.true.,"none",2
 
