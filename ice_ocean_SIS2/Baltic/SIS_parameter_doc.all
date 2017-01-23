@@ -13,6 +13,11 @@ SINGLE_ICE_STATE_TYPE = False   !   [Boolean] default = True
                                 ! single common ice_state_type.  Otherwise they point to
                                 ! different ice_state_types that need to be explicitly
                                 ! copied back and forth.
+EULERIAN_TSURF = True           !   [Boolean] default = True
+                                ! If true, use previous calculations of the ice-top surface
+                                ! skin temperature for tsurf at the start of atmospheric
+                                ! time stepping, including interpolating between tsurf
+                                ! values from other categories in the same location.
 ICE_OCEAN_STRESS_STAGGER = "C"  ! default = "C"
                                 ! A case-insensitive character string to indicate the
                                 ! staggering of the stress field on the ocean that is
@@ -75,6 +80,12 @@ APPLY_SLP_TO_OCEAN = False      !   [Boolean] default = False
 MIN_H_FOR_TEMP_CALC = 0.0       !   [m] default = 0.0
                                 ! The minimum ice thickness at which to do temperature
                                 ! calculations.
+MIN_OCEAN_PARTSIZE = 0.0        !   [nondim] default = 0.0
+                                ! The minimum value for the fractional open-ocean area.
+                                ! This can be 0, but for some purposes it may be useful
+                                ! to set this to a miniscule value (like 1e-40) that will
+                                ! be lost to roundoff during any sums so that the open
+                                ! ocean fluxes can be used in with new categories.
 DO_ICEBERGS = False             !   [Boolean] default = False
                                 ! If true, call the iceberg module.
 ADD_DIURNAL_SW = True           !   [Boolean] default = False
@@ -195,9 +206,9 @@ PARALLEL_RESTARTFILES = False   !   [Boolean] default = False
 
 ! === module MOM_hor_index ===
 ! Sets the horizontal array index types.
-AVAILABLE_DIAGS_FILE = "SIS.available_diags" ! default = "SIS.available_diags"
+SIS_AVAILABLE_DIAGS_FILE = "SIS.available_diags" ! default = "SIS.available_diags"
                                 ! A file into which to write a list of all available
-                                ! ocean diagnostics that can be included in a diag_table.
+                                ! sea ice diagnostics that can be included in a diag_table.
 
 ! === module SIS2_ice_thm (thermo) ===
 ! This sub-module calculates ice thermodynamic quantities.
@@ -211,16 +222,11 @@ CP_ICE = 2100.0                 !   [J kg-1 K-1] default = 2100.0
 CP_SEAWATER = 4200.0            !   [J kg-1 K-1] default = 4200.0
                                 ! The heat capacity of sea water, approximated as a
                                 ! constant.
-CP_WATER = 4200.0               !   [J kg-1 K-1] default = 4200.0
-                                ! The heat capacity of water in sea-ice, approximated as
-                                ! a constant.  CP_WATER and CP_SEAWATER should be equal,
-                                ! but for computational convenience CP_WATER has often
-                                ! been set equal to CP_ICE instead.
-CP_BRINE = 2100.0               !   [J kg-1 K-1] default = 2100.0
+CP_BRINE = 2100.0               !   [J kg-1 K-1] default = 4200.0
                                 ! The heat capacity of water in brine pockets within the
                                 ! sea-ice, approximated as a constant.  CP_BRINE and
-                                ! CP_WATER should be equal, but for computational
-                                ! convenience CP_BRINE has often been set equal to CP_ICE.
+                                ! CP_SEAWATER should be equal, but for computational
+                                ! convenience CP_BRINE can be set equal to CP_ICE.
 DTFREEZE_DS = -0.054            !   [deg C PSU-1] default = -0.054
                                 ! The derivative of the freezing temperature with salinity.
 ENTHALPY_LIQUID_0 = 0.0         !   [J kg-1] default = 0.0
@@ -254,6 +260,9 @@ USE_ICE_AGE_TRACER = False      !   [Boolean] default = False
 
 ! === module MOM_hor_index ===
 ! Sets the horizontal array index types.
+SIS_FAST_AVAILABLE_DIAGS_FILE = "SIS_fast.available_diags" ! default = "SIS_fast.available_diags"
+                                ! A file into which to write a list of all available
+                                ! sea ice diagnostics that can be included in a diag_table.
 
 ! === module SIS2_ice_thm (thermo) ===
 ! This sub-module calculates ice thermodynamic quantities.
@@ -265,7 +274,7 @@ ICE_BULK_SALINITY = 5.0         !   [g/kg] default = 4.0
 ICE_RELATIVE_SALINITY = 0.0     !   [nondim] default = 0.0
                                 ! The initial salinity of sea ice as a fraction of the
                                 ! salinity of the seawater from which it formed.
-SIS2_FILLING_FRAZIL = True      !   [Boolean] default = False
+SIS2_FILLING_FRAZIL = True      !   [Boolean] default = True
                                 ! If true, apply frazil to fill as many categories as
                                 ! possible to fill in a uniform (minimum) amount of ice
                                 ! in all the thinnest categories. Otherwise the frazil is
@@ -312,10 +321,6 @@ ICE_TEMP_RANGE_ESTIMATE = 40.0  !   [degC] default = 40.0
                                 ! layer heat budget is more likely to be more accurate.
                                 ! Setting this to 0 causes the explicit diffusive form.
                                 ! to always be used.
-OLD_ICE_HEAT_CAPACITY = False   !   [Boolean] default = False
-                                ! If true, use an older linearization of the sea ice heat
-                                ! capacity for temperatures above the freezing point in the
-                                ! calculation of the initial ice temperature estimate.
 
 ! === module SIS_dyn_trans ===
 ! This module updates the ice momentum and does ice transport.
@@ -400,18 +405,9 @@ MAX_TRUNC_FILE_SIZE_PER_PE = 50 ! default = 50
 NSTEPS_ADV = 1                  ! default = 1
                                 ! The number of advective iterations for each slow time
                                 ! step.
-ADVECT_TSURF = True             !   [Boolean] default = True
-                                ! If true, advect the surface skin temperature along with
-                                ! the ice.  This should be true for physical consistency.
-ICE_CHANNEL_VISCOSITY = 0.0     !   [m2 s-1] default = 0.0
-                                ! A viscosity used in one-cell wide channels to
-                                ! parameterize transport, especially with B-grid sea ice
-                                ! coupled to a C-grid ocean model.
-ICE_CHANNEL_SMAG_COEF = 0.15    !   [Nondim] default = 0.15
-                                ! A Smagorinsky coefficient for viscosity in channels.
-ICE_CHANNEL_CFL_LIMIT = 0.25    !   [Nondim] default = 0.25
-                                ! The CFL limit that is applied to the parameterized
-                                ! viscous transport in single-point channels.
+RECATEGORIZE_ICE = True         !   [Boolean] default = True
+                                ! If true, readjust the distribution into ice thickness
+                                ! categories after advection.
 SEA_ICE_ROLL_FACTOR = 1.0       !   [Nondim] default = 1.0
                                 ! A factor by which the propensity of small amounts of
                                 ! thick sea-ice to become thinner by rolling is increased
@@ -426,13 +422,13 @@ CHECK_ICE_TRANSPORT_CONSERVATION = False !   [Boolean] default = False
 SIS_THICKNESS_ADVECTION_SCHEME = "UPWIND_2D" ! default = "UPWIND_2D"
                                 ! The horizontal transport scheme for thickness:
                                 !   UPWIND_2D - Non-directionally split upwind
-                                !   PCM    - Directionally split peicewise constant
+                                !   PCM    - Directionally split piecewise constant
                                 !   PLM    - Piecewise Linear Method
                                 !   PPM:H3 - Piecewise Parabolic Method (Huyhn 3rd order)
 SIS_CONTINUITY_SCHEME = "UPWIND_2D" ! default = "UPWIND_2D"
                                 ! The horizontal transport scheme used in continuity:
                                 !   UPWIND_2D - Non-directionally split upwind
-                                !   PCM       - Directionally split peicewise constant
+                                !   PCM       - Directionally split piecewise constant
                                 !   PPM:C2PD  - Positive definite PPM with 2nd order edge values
                                 !   PPM:C2MO  - Monotonic PPM with 2nd order edge values
 CONT_PPM_VOLUME_BASED_CFL = False !   [Boolean] default = False
@@ -443,7 +439,7 @@ CONT_PPM_VOLUME_BASED_CFL = False !   [Boolean] default = False
 SIS_TRACER_ADVECTION_SCHEME = "PPM:H3" ! default = "UPWIND_2D"
                                 ! The horizontal transport scheme for tracers:
                                 !   UPWIND_2D - Non-directionally split upwind
-                                !   PCM    - Directionally split peicewise constant
+                                !   PCM    - Directionally split piecewise constant
                                 !   PLM    - Piecewise Linear Method
                                 !   PPM:H3 - Piecewise Parabolic Method (Huyhn 3rd order)
 
@@ -491,10 +487,10 @@ ICE_DELTA_EDD_R_POND = 0.0      !   [nondimensional] default = 0.0
 ! === module MOM_file_parser ===
 SEND_LOG_TO_STDOUT = False      !   [Boolean] default = False
                                 ! If true, all log messages are also sent to stdout.
-REPORT_UNUSED_PARAMS = False    !   [Boolean] default = False
+REPORT_UNUSED_PARAMS = True     !   [Boolean] default = False
                                 ! If true, report any parameter lines that are not used
                                 ! in the run.
-FATAL_UNUSED_PARAMS = False     !   [Boolean] default = False
+FATAL_UNUSED_PARAMS = True      !   [Boolean] default = False
                                 ! If true, kill the run if there are any unused
                                 ! parameters.
 DOCUMENT_FILE = "SIS_parameter_doc" ! default = "MOM_parameter_doc"

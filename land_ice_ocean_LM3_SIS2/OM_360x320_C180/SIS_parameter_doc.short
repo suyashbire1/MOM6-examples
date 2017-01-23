@@ -53,6 +53,11 @@ OMEGA = 7.292E-05               !   [s-1] default = 7.2921E-05
 
 ! === module SIS2_ice_thm (thermo) ===
 ! This sub-module calculates ice thermodynamic quantities.
+CP_BRINE = 2100.0               !   [J kg-1 K-1] default = 4200.0
+                                ! The heat capacity of water in brine pockets within the
+                                ! sea-ice, approximated as a constant.  CP_BRINE and
+                                ! CP_SEAWATER should be equal, but for computational
+                                ! convenience CP_BRINE can be set equal to CP_ICE.
 
 ! === module SIS_tracer_registry ===
 
@@ -62,6 +67,11 @@ OMEGA = 7.292E-05               !   [s-1] default = 7.2921E-05
 ! This module calculates the slow evolution of the ice mass, heat, and salt budgets.
 ICE_BULK_SALINITY = 5.0         !   [g/kg] default = 4.0
                                 ! The fixed bulk salinity of sea ice.
+SIS2_FILLING_FRAZIL = False     !   [Boolean] default = True
+                                ! If true, apply frazil to fill as many categories as
+                                ! possible to fill in a uniform (minimum) amount of ice
+                                ! in all the thinnest categories. Otherwise the frazil is
+                                ! always assigned to a single category.
 
 ! === module SIS2_ice_thm (updates) ===
 ! This sub-module does updates of the sea-ice due to thermodynamic changes.
@@ -84,9 +94,6 @@ ICE_TDAMP_ELASTIC = 1000.0      !   [s or nondim] default = -0.2
                                 ! The damping timescale associated with the elastic terms
                                 ! in the sea-ice dynamics equations (if positive) or the
                                 ! fraction of DT_ICE_DYNAMICS (if negative).
-ADVECT_TSURF = False            !   [Boolean] default = True
-                                ! If true, advect the surface skin temperature along with
-                                ! the ice.  This should be true for physical consistency.
 
 ! === module SIS_tracer_advect ===
 
@@ -102,6 +109,12 @@ ADVECT_TSURF = False            !   [Boolean] default = True
 ! This module calculates the albedo and absorption profiles for shortwave radiation.
 
 ! === module MOM_file_parser ===
+REPORT_UNUSED_PARAMS = True     !   [Boolean] default = False
+                                ! If true, report any parameter lines that are not used
+                                ! in the run.
+FATAL_UNUSED_PARAMS = True      !   [Boolean] default = False
+                                ! If true, kill the run if there are any unused
+                                ! parameters.
 DOCUMENT_FILE = "SIS_parameter_doc" ! default = "MOM_parameter_doc"
                                 ! The basename for files where run-time parameters, their
                                 ! settings, units and defaults are documented. Blank will
