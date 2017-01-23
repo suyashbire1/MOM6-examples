@@ -51,19 +51,15 @@ GRID_FILE = "ocean_hgrid.nc"    !
 
 ! === module SIS2_ice_thm (thermo) ===
 ! This sub-module calculates ice thermodynamic quantities.
+CP_BRINE = 2100.0               !   [J kg-1 K-1] default = 4200.0
+                                ! The heat capacity of water in brine pockets within the
+                                ! sea-ice, approximated as a constant.  CP_BRINE and
+                                ! CP_SEAWATER should be equal, but for computational
+                                ! convenience CP_BRINE can be set equal to CP_ICE.
 
 ! === module SIS_tracer_registry ===
 
 ! === module SIS_tracer_flow_control ===
-
-! === module SIS_fast_thermo ===
-! This module applies rapidly varying heat fluxes to the ice and does an implicit surface temperature calculation.
-
-! === module SIS2_ice_thm (updates) ===
-! This sub-module does updates of the sea-ice due to thermodynamic changes.
-
-! === module SIS_optics ===
-! This module calculates the albedo and absorption profiles for shortwave radiation.
 
 ! === module SIS_slow_thermo ===
 ! This module calculates the slow evolution of the ice mass, heat, and salt budgets.
@@ -72,6 +68,10 @@ ICE_BULK_SALINITY = 0.0         !   [g/kg] default = 4.0
 ICE_RELATIVE_SALINITY = 0.1     !   [nondim] default = 0.0
                                 ! The initial salinity of sea ice as a fraction of the
                                 ! salinity of the seawater from which it formed.
+FILLING_FRAZIL_TIMESCALE = 8.64E+04 !   [s] default = 0.0
+                                ! A timescale with which the filling frazil causes the
+                                ! thinest cells to attain similar thicknesses, or a negative
+                                ! number to apply the frazil flux uniformly.
 
 ! === module SIS2_ice_thm (updates) ===
 ! This sub-module does updates of the sea-ice due to thermodynamic changes.
@@ -97,13 +97,13 @@ ICE_TDAMP_ELASTIC = 1000.0      !   [s or nondim] default = -0.2
 SIS_THICKNESS_ADVECTION_SCHEME = "PCM" ! default = "UPWIND_2D"
                                 ! The horizontal transport scheme for thickness:
                                 !   UPWIND_2D - Non-directionally split upwind
-                                !   PCM    - Directionally split peicewise constant
+                                !   PCM    - Directionally split piecewise constant
                                 !   PLM    - Piecewise Linear Method
                                 !   PPM:H3 - Piecewise Parabolic Method (Huyhn 3rd order)
 SIS_CONTINUITY_SCHEME = "PCM"   ! default = "UPWIND_2D"
                                 ! The horizontal transport scheme used in continuity:
                                 !   UPWIND_2D - Non-directionally split upwind
-                                !   PCM       - Directionally split peicewise constant
+                                !   PCM       - Directionally split piecewise constant
                                 !   PPM:C2PD  - Positive definite PPM with 2nd order edge values
                                 !   PPM:C2MO  - Monotonic PPM with 2nd order edge values
 
@@ -111,13 +111,28 @@ SIS_CONTINUITY_SCHEME = "PCM"   ! default = "UPWIND_2D"
 SIS_TRACER_ADVECTION_SCHEME = "PPM:H3" ! default = "UPWIND_2D"
                                 ! The horizontal transport scheme for tracers:
                                 !   UPWIND_2D - Non-directionally split upwind
-                                !   PCM    - Directionally split peicewise constant
+                                !   PCM    - Directionally split piecewise constant
                                 !   PLM    - Piecewise Linear Method
                                 !   PPM:H3 - Piecewise Parabolic Method (Huyhn 3rd order)
 
 ! === module SIS_sum_output ===
 
+! === module SIS_fast_thermo ===
+! This module applies rapidly varying heat fluxes to the ice and does an implicit surface temperature calculation.
+
+! === module SIS2_ice_thm (updates) ===
+! This sub-module does updates of the sea-ice due to thermodynamic changes.
+
+! === module SIS_optics ===
+! This module calculates the albedo and absorption profiles for shortwave radiation.
+
 ! === module MOM_file_parser ===
+REPORT_UNUSED_PARAMS = True     !   [Boolean] default = False
+                                ! If true, report any parameter lines that are not used
+                                ! in the run.
+FATAL_UNUSED_PARAMS = True      !   [Boolean] default = False
+                                ! If true, kill the run if there are any unused
+                                ! parameters.
 DOCUMENT_FILE = "SIS_parameter_doc" ! default = "MOM_parameter_doc"
                                 ! The basename for files where run-time parameters, their
                                 ! settings, units and defaults are documented. Blank will

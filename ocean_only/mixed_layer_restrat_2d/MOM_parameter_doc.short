@@ -44,7 +44,7 @@ NK = 40                         !   [nondim]
 EQN_OF_STATE = "LINEAR"         ! default = "WRIGHT"
                                 ! EQN_OF_STATE determines which ocean equation of state
                                 ! should be used.  Currently, the valid choices are
-                                ! "LINEAR", "UNESCO", and "WRIGHT".
+                                ! "LINEAR", "UNESCO", "WRIGHT", "NEMO" and "TEOS10".
                                 ! This is only used if USE_EOS is true.
 
 ! === module MOM_restart ===
@@ -140,7 +140,8 @@ REGRIDDING_COORDINATE_MODE = "Z*" ! default = "LAYER"
                                 ! Coordinate mode for vertical regridding.
                                 ! Choose among the following possibilities:
                                 !  LAYER - Isopycnal or stacked shallow water layers
-                                !  Z*    - stetched geopotential z*
+                                !  ZSTAR, Z* - stetched geopotential z*
+                                !  SIGMA_SHELF_ZSTAR - stetched geopotential z* ignoring shelf
                                 !  SIGMA - terrain following coordinates
                                 !  RHO   - continuous isopycnal
                                 !  HYCOM1 - HyCOM-like hybrid coordinate
@@ -231,8 +232,6 @@ VELOCITY_CONFIG = "rossby_front" ! default = "zero"
 ! === module MOM_diag_mediator ===
 
 ! === module MOM_MEKE ===
-
-! === module MOM_wave_speed ===
 
 ! === module MOM_lateral_mixing_coeffs ===
 

@@ -139,7 +139,8 @@ REGRIDDING_COORDINATE_MODE = "Z*" ! default = "LAYER"
                                 ! Coordinate mode for vertical regridding.
                                 ! Choose among the following possibilities:
                                 !  LAYER - Isopycnal or stacked shallow water layers
-                                !  Z*    - stetched geopotential z*
+                                !  ZSTAR, Z* - stetched geopotential z*
+                                !  SIGMA_SHELF_ZSTAR - stetched geopotential z* ignoring shelf
                                 !  SIGMA - terrain following coordinates
                                 !  RHO   - continuous isopycnal
                                 !  HYCOM1 - HyCOM-like hybrid coordinate
@@ -148,10 +149,12 @@ ALE_COORDINATE_CONFIG = "FILE:./INPUT/vgrid_cm4.nc,dz" ! default = "UNIFORM"
                                 ! Determines how to specify the coordinate
                                 ! resolution. Valid options are:
                                 !  PARAM       - use the vector-parameter ALE_RESOLUTION
-                                !  UNIFORM     - uniformly distributed
+                                !  UNIFORM[:N] - uniformly distributed
                                 !  FILE:string - read from a file. The string specifies
                                 !                the filename and variable name, separated
-                                !                by a comma or space, e.g. FILE:lev.nc,Z
+                                !                by a comma or space, e.g. FILE:lev.nc,dz
+                                !                or FILE:lev.nc,interfaces=zw
+                                !  WOA09[:N]   - the WOA09 vertical grid (approximately)
                                 !  FNC1:string - FNC1:dz_min,H_total,power,precision
                                 !  HYBRID:string - read from a file. The string specifies
                                 !                the filename and two variable names, separated
@@ -192,8 +195,6 @@ Z_INIT_ALE_REMAPPING = True     !   [Boolean] default = False
 ! === module MOM_diag_mediator ===
 
 ! === module MOM_MEKE ===
-
-! === module MOM_wave_speed ===
 
 ! === module MOM_lateral_mixing_coeffs ===
 
