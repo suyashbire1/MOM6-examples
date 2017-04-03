@@ -4,9 +4,6 @@
 [submodule "src/MOM6"]
 	path = src/MOM6
 	url = git@github.com:suyashbire1/MOM6.git
-[submodule "src/SIS2"]
-	path = src/SIS2
-	url = https://github.com/NOAA-GFDL/SIS2.git
 [submodule "tools/matlab/gtools"]
 	path = tools/matlab/gtools
 	url = https://github.com/Adcroft/gtools.git
