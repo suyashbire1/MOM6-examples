@@ -6,6 +6,8 @@ VERBOSITY = 2                   ! default = 2
                                 !   0 = Only FATAL messages
                                 !   2 = Only FATAL, WARNING, NOTE [default]
                                 !   9 = All)
+DO_UNIT_TESTS = False           !   [Boolean] default = False
+                                ! If True, exercises unit tests at model start up.
 SPLIT = False                   !   [Boolean] default = True
                                 ! Use the split time stepping if true.
 USE_RK2 = False                 !   [Boolean] default = False
@@ -309,8 +311,12 @@ TOPO_CONFIG = "flat"            !
                                 !       ISOMIP test case.
                                 !     DOME2D - use a shelf and slope configuration for the
                                 !       DOME2D gravity current/overflow test case.
+                                !     Kelvin - flat but with rotated land mask.
                                 !     seamount - Gaussian bump for spontaneous motion test case.
+                                !     shelfwave - exponential slope for shelfwave test case.
+                                !     supercritical - flat but with 8.95 degree land mask.
                                 !     Phillips - ACC-like idealized topography used in the Phillips config.
+                                !     dense - Denmark Strait-like dense water formation and overflow.
                                 !     USER - call a user modified routine.
 MINIMUM_DEPTH = 0.5             !   [m] default = 0.0
                                 ! The minimum depth of the ocean.
@@ -399,6 +405,7 @@ REGRIDDING_COORDINATE_MODE = "Z*" ! default = "LAYER"
                                 !  RHO   - continuous isopycnal
                                 !  HYCOM1 - HyCOM-like hybrid coordinate
                                 !  SLIGHT - stretched coordinates above continuous isopycnal
+                                !  ADAPTIVE - optimize for smooth neutral density surfaces
 REGRIDDING_COORDINATE_UNITS = "m" ! default = "m"
                                 ! Units of the regridding coordinuate.
 ALE_COORDINATE_CONFIG = "UNIFORM" ! default = "UNIFORM"
@@ -548,6 +555,10 @@ TRIM_IC_FOR_P_SURF = False      !   [Boolean] default = False
                                 ! If true, cuts way the top of the column for initial conditions
                                 ! at the depth where the hydrostatic presure matches the imposed
                                 ! surface pressure which is read from file.
+REGRID_ACCELERATE_INIT = False  !   [Boolean] default = False
+                                ! If true, runs REGRID_ACCELERATE_ITERATIONS iterations of the regridding
+                                ! algorithm to push the initial grid to be consistent with the initial
+                                ! condition. Useful only for state-based and iterative coordinates.
 SPONGE = False                  !   [Boolean] default = False
                                 ! If true, sponges may be applied anywhere in the domain.
                                 ! The exact location and properties of those sponges are
@@ -1223,6 +1234,9 @@ MIX_LEN_EXPONENT = 2.0          !   [units=nondim] default = 2.0
 MSTAR_CAP = -1.0                !   [units=nondim] default = -1.0
                                 ! Maximum value of mstar allowed in model if non-negative
                                 ! (used if MSTAR_MODE>0).
+MSTAR_CONV_ADJ = 0.0            !   [units=nondim] default = 0.0
+                                ! Factor used for reducing mstar during convection
+                                !  due to reduction of stable density gradient.
 MSTAR_SLOPE = 0.85              !   [units=nondim] default = 0.85
                                 ! The slope of the linear relationship between mstar
                                 ! and the length scale ratio (used if MSTAR_MODE=1).
@@ -1311,11 +1325,12 @@ LA_DEPTH_RATIO = 0.04           !   [nondim] default = 0.04
                                 ! The depth (normalized by BLD) to average Stokes drift over in
                                 !  Lanmguir number calculation, where La = sqrt(ust/Stokes).
 LT_ENHANCE = 0                  !   [nondim] default = 0
-                                ! Integer for LT enhancement function mode.
+                                ! Integer for Langmuir number mode.
                                 !  *Requires USE_LA_LI2016 to be set to True.
-                                ! Options: 0 - no LT enhancement
+                                ! Options: 0 - No Langmuir
                                 !          1 - Van Roekel et al. 2014/Li et al., 2016
-                                !          2 - New LES net mixing based derivation (requires coefficients)
+                                !          2 - Multiplied w/ adjusted La.
+                                !          3 - Added w/ adjusted La.
 LT_ENHANCE_COEF = 0.447         !   [nondim] default = 0.447
                                 ! Coefficient for Langmuir enhancement if LT_ENHANCE > 1
 LT_ENHANCE_EXP = -1.33          !   [nondim] default = -1.33
@@ -1506,7 +1521,7 @@ DT_FORCING = 1200.0             !   [s] default = 1200.0
                                 ! The time step for changing forcing, coupling with other
                                 ! components, or potentially writing certain diagnostics.
                                 ! The default value is given by DT.
-DAYMAX = 15.0                   !   [days]
+DAYMAX = 5.0                    !   [days]
                                 ! The final time of the whole simulation, in units of
                                 ! TIMEUNIT seconds.  This also sets the potential end
                                 ! time of the present run segment if the end time is
