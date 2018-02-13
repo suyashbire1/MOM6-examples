@@ -18,8 +18,14 @@ import VerticalSplitScale
 
 try: from mpl_toolkits.basemap import Basemap
 except: print('Basemap module not found. Some regional plots may not function properly')
-try: import cmocean
-except: print('cmocean module not found. Some color maps may not render properly')
+
+try: 
+  import cmocean
+except: 
+  if "HTTP_USER_AGENT" in os.environ.keys():
+    pass
+  else:
+    print('cmocean module not found. Some color maps may not render properly')
 
 from sys import modules
 
@@ -512,10 +518,10 @@ def yzcompare(field1, field2, y=None, z=None,
     cb1 = plt.colorbar(fraction=.08, pad=0.02, extend=extend)
     if centerlabels and len(clim)>2: cb1.set_ticks(  0.5*(clim[:-1]+clim[1:]) )
     axis.set_axis_bgcolor(landcolor)
-    plt.xlim( xLims ); plt.ylim( yLims )
     if splitscale is not None:
       for zzz in splitscale[1:-1]: plt.axhline(zzz,color='k',linestyle='--')
       axis.set_yscale('splitscale', zval=splitscale)
+    plt.xlim( xLims ); plt.ylim( yLims )
     annotateStats(axis, s1Min, s1Max, s1Mean, s1Std, s1RMS, webversion=webversion)
     axis.set_xticklabels([''])
     if len(zlabel+zunits)>0: plt.ylabel(label(zlabel, zunits))
@@ -527,10 +533,10 @@ def yzcompare(field1, field2, y=None, z=None,
     cb2 = plt.colorbar(fraction=.08, pad=0.02, extend=extend)
     if centerlabels and len(clim)>2: cb2.set_ticks(  0.5*(clim[:-1]+clim[1:]) )
     axis.set_axis_bgcolor(landcolor)
-    plt.xlim( xLims ); plt.ylim( yLims )
     if splitscale is not None:
       for zzz in splitscale[1:-1]: plt.axhline(zzz,color='k',linestyle='--')
       axis.set_yscale('splitscale', zval=splitscale)
+    plt.xlim( xLims ); plt.ylim( yLims )
     annotateStats(axis, s2Min, s2Max, s2Mean, s2Std, s2RMS, webversion=webversion)
     if npanels>2: axis.set_xticklabels([''])
     if len(zlabel+zunits)>0: plt.ylabel(label(zlabel, zunits))
@@ -548,10 +554,10 @@ def yzcompare(field1, field2, y=None, z=None,
     cb3 = plt.colorbar(fraction=.08, pad=0.02, extend=dextend)
     if centerdlabels and len(dlim)>2: cb3.set_ticks(  0.5*(dlim[:-1]+dlim[1:]) )
     axis.set_axis_bgcolor(landcolor)
-    plt.xlim( xLims ); plt.ylim( yLims )
     if splitscale is not None:
       for zzz in splitscale[1:-1]: plt.axhline(zzz,color='k',linestyle='--')
       axis.set_yscale('splitscale', zval=splitscale)
+    plt.xlim( xLims ); plt.ylim( yLims )
     annotateStats(axis, dMin, dMax, dMean, dStd, dRMS)
     if len(zlabel+zunits)>0: plt.ylabel(label(zlabel, zunits))
 

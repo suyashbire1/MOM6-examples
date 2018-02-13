@@ -93,25 +93,6 @@ NJGLOBAL = 320                  !
 NK = 75                         !   [nondim]
                                 ! The number of model layers.
 
-! === module MOM_tracer_registry ===
-
-! === module MOM_EOS ===
-TFREEZE_FORM = "MILLERO_78"     ! default = "LINEAR"
-                                ! TFREEZE_FORM determines which expression should be
-                                ! used for the freezing point.  Currently, the valid
-                                ! choices are "LINEAR", "MILLERO_78", "TEOS10"
-
-! === module MOM_restart ===
-PARALLEL_RESTARTFILES = True    !   [Boolean] default = False
-                                ! If true, each processor writes its own restart file,
-                                ! otherwise a single restart file is generated
-
-! === module MOM_tracer_flow_control ===
-USE_IDEAL_AGE_TRACER = True     !   [Boolean] default = False
-                                ! If true, use the ideal_age_example tracer package.
-
-! === module ideal_age_example ===
-
 ! === module MOM_fixed_initialization ===
 INPUTDIR = "INPUT"              ! default = "."
                                 ! The directory in which input files are found.
@@ -139,6 +120,7 @@ TOPO_CONFIG = "file"            !
                                 !     halfpipe - a zonally uniform channel with a half-sine
                                 !       profile in the meridional direction.
                                 !     benchmark - use the benchmark test case topography.
+                                !     Neverland - use the Neverland test case topography.
                                 !     DOME - use a slope and channel configuration for the
                                 !       DOME sill-overflow test case.
                                 !     ISOMIP - use a slope and channel configuration for the
@@ -147,6 +129,7 @@ TOPO_CONFIG = "file"            !
                                 !       DOME2D gravity current/overflow test case.
                                 !     Kelvin - flat but with rotated land mask.
                                 !     seamount - Gaussian bump for spontaneous motion test case.
+                                !     dumbbell - Sloshing channel with reservoirs on both ends.
                                 !     shelfwave - exponential slope for shelfwave test case.
                                 !     supercritical - flat but with 8.95 degree land mask.
                                 !     Phillips - ACC-like idealized topography used in the Phillips config.
@@ -179,9 +162,29 @@ CHANNEL_CONFIG = "list"         ! default = "none"
 CHANNEL_LIST_FILE = "MOM_channels_FLOR" ! default = "MOM_channel_list"
                                 ! The file from which the list of narrowed channels is read.
 
+! === module MOM_tracer_registry ===
+
+! === module MOM_EOS ===
+TFREEZE_FORM = "MILLERO_78"     ! default = "LINEAR"
+                                ! TFREEZE_FORM determines which expression should be
+                                ! used for the freezing point.  Currently, the valid
+                                ! choices are "LINEAR", "MILLERO_78", "TEOS10"
+
+! === module MOM_restart ===
+PARALLEL_RESTARTFILES = True    !   [Boolean] default = False
+                                ! If true, each processor writes its own restart file,
+                                ! otherwise a single restart file is generated
+
+! === module MOM_tracer_flow_control ===
+USE_IDEAL_AGE_TRACER = True     !   [Boolean] default = False
+                                ! If true, use the ideal_age_example tracer package.
+
+! === module ideal_age_example ===
+
 ! === module MOM_coord_initialization ===
 COORD_CONFIG = "file"           !
                                 ! This specifies how layers are to be defined:
+                                !     ALE or none - used to avoid defining layers in ALE mode
                                 !     file - read coordinate information from the file
                                 !       specified by (COORD_FILE).
                                 !     BFB - Custom coords for buoyancy-forced basin case
@@ -254,13 +257,15 @@ INIT_LAYERS_FROM_Z_FILE = True  !   [Boolean] default = False
 ! === module MOM_initialize_layers_from_Z ===
 TEMP_SALT_Z_INIT_FILE = "WOA05_pottemp_salt.nc" ! default = "temp_salt_z.nc"
                                 ! The name of the z-space input file used to initialize
-                                ! the layer thicknesses, temperatures and salinities.
+                                ! temperatures (T) and salinities (S). If T and S are not
+                                ! in the same file, TEMP_Z_INIT_FILE and SALT_Z_INIT_FILE
+                                ! must be set.
 Z_INIT_FILE_PTEMP_VAR = "PTEMP" ! default = "ptemp"
                                 ! The name of the potential temperature variable in
-                                ! TEMP_SALT_Z_INIT_FILE.
+                                ! TEMP_Z_INIT_FILE.
 Z_INIT_FILE_SALT_VAR = "SALT"   ! default = "salt"
                                 ! The name of the salinity variable in
-                                ! TEMP_SALT_Z_INIT_FILE.
+                                ! SALT_Z_INIT_FILE.
 Z_INIT_ALE_REMAPPING = True     !   [Boolean] default = False
                                 ! If True, then remap straight to model coordinate from file.
 
@@ -592,7 +597,7 @@ ML_OMEGA_FRAC = 1.0             !   [nondim] default = 0.0
                                 ! When setting the decay scale for turbulence, use this
                                 ! fraction of the absolute rotation rate blended with the
                                 ! local value of f, as sqrt((1-of)*f^2 + of*4*omega^2).
-EPBL_USTAR_MIN = 1.45842E-18    !   [meter second-1]
+EPBL_USTAR_MIN = 1.45842E-18    !   [m s-1]
                                 ! The (tiny) minimum friction velocity used within the
                                 ! ePBL code, derived from OMEGA and ANGSTROM.
 
@@ -626,10 +631,21 @@ CHECK_DIFFUSIVE_CFL = True      !   [Boolean] default = False
 ! === module MOM_neutral_diffusion ===
 ! This module implements neutral diffusion of tracers
 
-! === module ocean_model_init ===
+! === module MOM_sum_output ===
+CALCULATE_APE = False           !   [Boolean] default = True
+                                ! If true, calculate the available potential energy of
+                                ! the interfaces.  Setting this to false reduces the
+                                ! memory footprint of high-PE-count models dramatically.
+MAXTRUNC = 100000               !   [truncations save_interval-1] default = 0
+                                ! The run will be stopped, and the day set to a very
+                                ! large value if the velocity is truncated more than
+                                ! MAXTRUNC times between energy saves.  Set MAXTRUNC to 0
+                                ! to stop if there is any truncation of velocities.
 ENERGYSAVEDAYS = 0.25           !   [days] default = 1.0
                                 ! The interval in units of TIMEUNIT between saves of the
                                 ! energies of the run and other globally summed diagnostics.
+
+! === module ocean_model_init ===
 
 ! === module MOM_surface_forcing ===
 MAX_P_SURF = 3.0E+04            !   [Pa] default = -1.0
@@ -643,16 +659,5 @@ CD_TIDES = 0.0018               !   [nondim] default = 1.0E-04
                                 ! The drag coefficient that applies to the tides.
 
 ! === module MOM_restart ===
-
-! === module MOM_sum_output ===
-CALCULATE_APE = False           !   [Boolean] default = True
-                                ! If true, calculate the available potential energy of
-                                ! the interfaces.  Setting this to false reduces the
-                                ! memory footprint of high-PE-count models dramatically.
-MAXTRUNC = 100000               !   [truncations save_interval-1] default = 0
-                                ! The run will be stopped, and the day set to a very
-                                ! large value if the velocity is truncated more than
-                                ! MAXTRUNC times between energy saves.  Set MAXTRUNC to 0
-                                ! to stop if there is any truncation of velocities.
 
 ! === module MOM_file_parser ===

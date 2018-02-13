@@ -51,27 +51,6 @@ ANGSTROM = 1.0E-15              !   [m] default = 1.0E-10
 NK = 10                         !   [nondim]
                                 ! The number of model layers.
 
-! === module MOM_tracer_registry ===
-
-! === module MOM_EOS ===
-EQN_OF_STATE = "LINEAR"         ! default = "WRIGHT"
-                                ! EQN_OF_STATE determines which ocean equation of state
-                                ! should be used.  Currently, the valid choices are
-                                ! "LINEAR", "UNESCO", "WRIGHT", "NEMO" and "TEOS10".
-                                ! This is only used if USE_EOS is true.
-DRHO_DT = 0.0                   !   [kg m-3 K-1] default = -0.2
-                                ! When EQN_OF_STATE=LINEAR,
-                                ! this is the partial derivative of density with
-                                ! temperature.
-DRHO_DS = 1.0                   !   [kg m-3 PSU-1] default = 0.8
-                                ! When EQN_OF_STATE=LINEAR,
-                                ! this is the partial derivative of density with
-                                ! salinity.
-
-! === module MOM_restart ===
-
-! === module MOM_tracer_flow_control ===
-
 ! === module MOM_fixed_initialization ===
 INPUTDIR = "INPUT"              ! default = "."
                                 ! The directory in which input files are found.
@@ -109,6 +88,7 @@ TOPO_CONFIG = "flat"            !
                                 !     halfpipe - a zonally uniform channel with a half-sine
                                 !       profile in the meridional direction.
                                 !     benchmark - use the benchmark test case topography.
+                                !     Neverland - use the Neverland test case topography.
                                 !     DOME - use a slope and channel configuration for the
                                 !       DOME sill-overflow test case.
                                 !     ISOMIP - use a slope and channel configuration for the
@@ -117,6 +97,7 @@ TOPO_CONFIG = "flat"            !
                                 !       DOME2D gravity current/overflow test case.
                                 !     Kelvin - flat but with rotated land mask.
                                 !     seamount - Gaussian bump for spontaneous motion test case.
+                                !     dumbbell - Sloshing channel with reservoirs on both ends.
                                 !     shelfwave - exponential slope for shelfwave test case.
                                 !     supercritical - flat but with 8.95 degree land mask.
                                 !     Phillips - ACC-like idealized topography used in the Phillips config.
@@ -136,9 +117,31 @@ ROTATION = "beta"               ! default = "2omegasinlat"
                                 !     betaplane - Use a beta-plane or f-plane.
                                 !     USER - call a user modified routine.
 
+! === module MOM_tracer_registry ===
+
+! === module MOM_EOS ===
+EQN_OF_STATE = "LINEAR"         ! default = "WRIGHT"
+                                ! EQN_OF_STATE determines which ocean equation of state
+                                ! should be used.  Currently, the valid choices are
+                                ! "LINEAR", "UNESCO", "WRIGHT", "NEMO" and "TEOS10".
+                                ! This is only used if USE_EOS is true.
+DRHO_DT = 0.0                   !   [kg m-3 K-1] default = -0.2
+                                ! When EQN_OF_STATE=LINEAR,
+                                ! this is the partial derivative of density with
+                                ! temperature.
+DRHO_DS = 1.0                   !   [kg m-3 PSU-1] default = 0.8
+                                ! When EQN_OF_STATE=LINEAR,
+                                ! this is the partial derivative of density with
+                                ! salinity.
+
+! === module MOM_restart ===
+
+! === module MOM_tracer_flow_control ===
+
 ! === module MOM_coord_initialization ===
 COORD_CONFIG = "linear"         !
                                 ! This specifies how layers are to be defined:
+                                !     ALE or none - used to avoid defining layers in ALE mode
                                 !     file - read coordinate information from the file
                                 !       specified by (COORD_FILE).
                                 !     BFB - Custom coords for buoyancy-forced basin case
@@ -204,18 +207,21 @@ THICKNESS_CONFIG = "uniform"    !
                                 !     coord - determined by ALE coordinate.
                                 !     uniform - uniform thickness layers evenly distributed
                                 !       between the surface and MAXIMUM_DEPTH.
+                                !     list - read a list of positive interface depths.
                                 !     DOME - use a slope and channel configuration for the
                                 !       DOME sill-overflow test case.
                                 !     ISOMIP - use a configuration for the
                                 !       ISOMIP test case.
                                 !     benchmark - use the benchmark test case thicknesses.
+                                !     Neverland - use the Neverland test case thicknesses.
                                 !     search - search a density profile for the interface
                                 !       densities. This is not yet implemented.
                                 !     circle_obcs - the circle_obcs test case is used.
                                 !     DOME2D - 2D version of DOME initialization.
-                                !     adjustment2d - TBD AJA.
-                                !     sloshing - TBD AJA.
-                                !     seamount - TBD AJA.
+                                !     adjustment2d - 2D lock exchange thickness ICs.
+                                !     sloshing - sloshing gravity thickness ICs.
+                                !     seamount - no motion test with seamount ICs.
+                                !     dumbbell - sloshing channel ICs.
                                 !     soliton - Equatorial Rossby soliton.
                                 !     rossby_front - a mixed layer front in thermal wind balance.
                                 !     USER - call a user modified routine.
@@ -232,9 +238,10 @@ TS_CONFIG = "baroclinic_zone"   !
                                 !     linear - linear in logical layer space.
                                 !     DOME2D - 2D DOME initialization.
                                 !     ISOMIP - ISOMIP initialization.
-                                !     adjustment2d - TBD AJA.
-                                !     sloshing - TBD AJA.
-                                !     seamount - TBD AJA.
+                                !     adjustment2d - 2d lock exchange T/S ICs.
+                                !     sloshing - sloshing mode T/S ICs.
+                                !     seamount - no motion test with seamount ICs.
+                                !     dumbbell - sloshing channel ICs.
                                 !     rossby_front - a mixed layer front in thermal wind balance.
                                 !     SCM_ideal_hurr - used in the SCM idealized hurricane test.
                                 !     SCM_CVmix_tests - used in the SCM CVmix tests.
@@ -455,6 +462,16 @@ KHTR = 1.0E+04                  !   [m2 s-1] default = 0.0
 USE_NEUTRAL_DIFFUSION = True    !   [Boolean] default = False
                                 ! If true, enables the neutral diffusion module.
 
+! === module MOM_sum_output ===
+MAXTRUNC = 10                   !   [truncations save_interval-1] default = 0
+                                ! The run will be stopped, and the day set to a very
+                                ! large value if the velocity is truncated more than
+                                ! MAXTRUNC times between energy saves.  Set MAXTRUNC to 0
+                                ! to stop if there is any truncation of velocities.
+ENERGYSAVEDAYS = 5.0            !   [days] default = 1.0
+                                ! The interval in units of TIMEUNIT between saves of the
+                                ! energies of the run and other globally summed diagnostics.
+
 ! === module MOM_surface_forcing ===
 VARIABLE_WINDS = False          !   [Boolean] default = True
                                 ! If true, the winds vary in time after the initialization.
@@ -472,24 +489,6 @@ WIND_CONFIG = "zero"            !
 
 ! === module MOM_restart ===
 
-! === module MOM_sum_output ===
-MAXTRUNC = 10                   !   [truncations save_interval-1] default = 0
-                                ! The run will be stopped, and the day set to a very
-                                ! large value if the velocity is truncated more than
-                                ! MAXTRUNC times between energy saves.  Set MAXTRUNC to 0
-                                ! to stop if there is any truncation of velocities.
-
-! === module MOM_write_cputime ===
-MAXCPU = 2.88E+04               !   [wall-clock seconds] default = -1.0
-                                ! The maximum amount of cpu time per processor for which
-                                ! MOM should run before saving a restart file and
-                                ! quitting with a return value that indicates that a
-                                ! further run is required to complete the simulation.
-                                ! If automatic restarts are not desired, use a negative
-                                ! value for MAXCPU.  MAXCPU has units of wall-clock
-                                ! seconds, so the actual CPU time used is larger by a
-                                ! factor of the number of processors used.
-
 ! === module MOM_main (MOM_driver) ===
 DAYMAX = 20.0                   !   [days]
                                 ! The final time of the whole simulation, in units of
@@ -502,8 +501,16 @@ RESTART_CONTROL = 3             ! default = 1
                                 ! (bit 0) for a non-time-stamped file. A non-time-stamped
                                 ! restart file is saved at the end of the run segment
                                 ! for any non-negative value.
-ENERGYSAVEDAYS = 5.0            !   [days] default = 0.0416666666666667
-                                ! The interval in units of TIMEUNIT between saves of the
-                                ! energies of the run and other globally summed diagnostics.
+
+! === module MOM_write_cputime ===
+MAXCPU = 2.88E+04               !   [wall-clock seconds] default = -1.0
+                                ! The maximum amount of cpu time per processor for which
+                                ! MOM should run before saving a restart file and
+                                ! quitting with a return value that indicates that a
+                                ! further run is required to complete the simulation.
+                                ! If automatic restarts are not desired, use a negative
+                                ! value for MAXCPU.  MAXCPU has units of wall-clock
+                                ! seconds, so the actual CPU time used is larger by a
+                                ! factor of the number of processors used.
 
 ! === module MOM_file_parser ===
