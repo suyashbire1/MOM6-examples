@@ -1,13 +1,6 @@
-! This file was written by the model and records all non-layout parameters used at run-time.
+! This file was written by the model and records all non-layout or debugging parameters used at run-time.
 
 ! === module MOM ===
-VERBOSITY = 2                   ! default = 2
-                                ! Integer controlling level of messaging
-                                !   0 = Only FATAL messages
-                                !   2 = Only FATAL, WARNING, NOTE [default]
-                                !   9 = All)
-DO_UNIT_TESTS = True            !   [Boolean] default = False
-                                ! If True, exercises unit tests at model start up.
 SPLIT = False                   !   [Boolean] default = True
                                 ! Use the split time stepping if true.
 USE_RK2 = False                 !   [Boolean] default = False
@@ -28,7 +21,7 @@ DIABATIC_FIRST = False          !   [Boolean] default = False
                                 ! including buoyancy forcing and mass gain or loss,
                                 ! before stepping the dynamics forward.
 USE_CONTEMP_ABSSAL = False      !   [Boolean] default = False
-                                ! If true, , the prognostics T&S are the conservative temperature
+                                ! If true, the prognostics T&S are the conservative temperature
                                 ! and absolute salinity. Care should be taken to convert them
                                 ! to potential temperature and practical salinity before
                                 ! exchanging them with the coupler and/or reporting T&S diagnostics.
@@ -37,6 +30,9 @@ ADIABATIC = True                !   [Boolean] default = False
                                 ! true. This assumes that KD = KDML = 0.0 and that
                                 ! there is no buoyancy forcing, but makes the model
                                 ! faster by eliminating subroutine calls.
+USE_LEGACY_DIABATIC_DRIVER = True !   [Boolean] default = True
+                                ! If true, use the a legacy version of the diabatic subroutine.
+                                ! This is temporary and is needed avoid change in answers.
 OFFLINE_TRACER_MODE = False     !   [Boolean] default = False
                                 ! If true, barotropic and baroclinic dynamics, thermodynamics
                                 ! are all bypassed with all the fields necessary to integrate
@@ -63,11 +59,6 @@ BATHYMETRY_AT_VEL = False       !   [Boolean] default = False
                                 ! If true, there are separate values for the basin depths
                                 ! at velocity points.  Otherwise the effects of topography
                                 ! are entirely determined from thickness points.
-DEBUG = False                   !   [Boolean] default = False
-                                ! If true, write out verbose debugging data.
-DEBUG_TRUNCATIONS = False       !   [Boolean] default = False
-                                ! If true, calculate all diagnostics that are useful for
-                                ! debugging truncations.
 DT = 8.64E+04                   !   [s]
                                 ! The (baroclinic) dynamics time step.  The time-step that
                                 ! is actually used will be an integer fraction of the
@@ -94,6 +85,11 @@ HMIX_UV_SFC_PROP = 0.0          !   [m] default = 0.0
                                 ! If BULKMIXEDLAYER is false, HMIX_UV_SFC_PROP is the depth
                                 ! over which to average to find surface flow properties,
                                 ! SSU, SSV. A non-positive value indicates no averaging.
+HFREEZE = -1.0                  !   [m] default = -1.0
+                                ! If HFREEZE > 0, melt potential will be computed. The actual depth
+                                ! over which melt potential is computed will be min(HFREEZE, OBLD),
+                                ! where OBLD is the boundary layer depth. If HFREEZE <= 0 (default),
+                                ! melt potential will not be computed.
 MIN_Z_DIAG_INTERVAL = 0.0       !   [s] default = 0.0
                                 ! The minimum amount of time in seconds between
                                 ! calculations of depth-space diagnostics. Making this
@@ -120,6 +116,11 @@ WRITE_GEOM = 1                  ! default = 1
                                 ! If =1, write the geometry and vertical grid files only for
                                 ! a new simulation. If =2, always write the geometry and
                                 ! vertical grid files. Other values are invalid.
+ENSEMBLE_OCEAN = False          !   [Boolean] default = False
+                                ! If False, The model is being run in serial mode as a single realization.
+                                ! If True, The current model realization is part of a larger ensemble
+                                ! and at the end of step MOM, we will perform a gather of the ensemble
+                                ! members for statistical evaluation and/or data assimilation.
 
 ! === module MOM_domains ===
 REENTRANT_X = True              !   [Boolean] default = True
@@ -137,12 +138,6 @@ NJGLOBAL = 4                    !
                                 ! The total number of thickness grid points in the
                                 ! y-direction in the physical domain. With STATIC_MEMORY_
                                 ! this is set in MOM_memory.h at compile time.
-DEBUG_CHKSUMS = False           !   [Boolean] default = False
-                                ! If true, checksums are performed on arrays in the
-                                ! various vec_chksum routines.
-DEBUG_REDUNDANT = False         !   [Boolean] default = False
-                                ! If true, debug redundant data points during calls to
-                                ! the various vec_chksum routines.
 
 ! === module MOM_hor_index ===
 ! Sets the horizontal array index types.
@@ -165,45 +160,6 @@ H_TO_M = 1.0                    !   [m H-1] default = 1.0
                                 ! units of thickness into m.
 NK = 1                          !   [nondim]
                                 ! The number of model layers.
-
-! === module MOM_tracer_registry ===
-
-! === module MOM_restart ===
-PARALLEL_RESTARTFILES = False   !   [Boolean] default = False
-                                ! If true, each processor writes its own restart file,
-                                ! otherwise a single restart file is generated
-RESTARTFILE = "MOM.res"         ! default = "MOM.res"
-                                ! The name-root of the restart file.
-LARGE_FILE_SUPPORT = True       !   [Boolean] default = True
-                                ! If true, use the file-size limits with NetCDF large
-                                ! file support (4Gb), otherwise the limit is 2Gb.
-MAX_FIELDS = 100                ! default = 100
-                                ! The maximum number of restart fields that can be used.
-
-! === module MOM_tracer_flow_control ===
-USE_USER_TRACER_EXAMPLE = False !   [Boolean] default = False
-                                ! If true, use the USER_tracer_example tracer package.
-USE_DOME_TRACER = False         !   [Boolean] default = False
-                                ! If true, use the DOME_tracer tracer package.
-USE_ISOMIP_TRACER = False       !   [Boolean] default = False
-                                ! If true, use the ISOMIP_tracer tracer package.
-USE_IDEAL_AGE_TRACER = False    !   [Boolean] default = False
-                                ! If true, use the ideal_age_example tracer package.
-USE_REGIONAL_DYES = False       !   [Boolean] default = False
-                                ! If true, use the regional_dyes tracer package.
-USE_OIL_TRACER = False          !   [Boolean] default = False
-                                ! If true, use the oil_tracer tracer package.
-USE_ADVECTION_TEST_TRACER = False !   [Boolean] default = False
-                                ! If true, use the advection_test_tracer tracer package.
-USE_OCMIP2_CFC = False          !   [Boolean] default = False
-                                ! If true, use the MOM_OCMIP2_CFC tracer package.
-USE_generic_tracer = False      !   [Boolean] default = False
-                                ! If true and _USE_GENERIC_TRACER is defined as a
-                                ! preprocessor macro, use the MOM_generic_tracer packages.
-USE_PSEUDO_SALT_TRACER = False  !   [Boolean] default = False
-                                ! If true, use the pseudo salt tracer, typically run as a diagnostic.
-USE_BOUNDARY_IMPULSE_TRACER = False !   [Boolean] default = False
-                                ! If true, use the boundary impulse tracer.
 
 ! === module MOM_fixed_initialization ===
 INPUTDIR = "."                  ! default = "."
@@ -247,6 +203,7 @@ TOPO_CONFIG = "flat"            !
                                 !     halfpipe - a zonally uniform channel with a half-sine
                                 !       profile in the meridional direction.
                                 !     benchmark - use the benchmark test case topography.
+                                !     Neverland - use the Neverland test case topography.
                                 !     DOME - use a slope and channel configuration for the
                                 !       DOME sill-overflow test case.
                                 !     ISOMIP - use a slope and channel configuration for the
@@ -255,8 +212,8 @@ TOPO_CONFIG = "flat"            !
                                 !       DOME2D gravity current/overflow test case.
                                 !     Kelvin - flat but with rotated land mask.
                                 !     seamount - Gaussian bump for spontaneous motion test case.
+                                !     dumbbell - Sloshing channel with reservoirs on both ends.
                                 !     shelfwave - exponential slope for shelfwave test case.
-                                !     supercritical - flat but with 8.95 degree land mask.
                                 !     Phillips - ACC-like idealized topography used in the Phillips config.
                                 !     dense - Denmark Strait-like dense water formation and overflow.
                                 !     USER - call a user modified routine.
@@ -269,10 +226,6 @@ MAXIMUM_DEPTH = 100.0           !   [m]
 ! Controls where open boundaries are located, what kind of boundary condition to impose, and what data to apply, if any.
 OBC_NUMBER_OF_SEGMENTS = 0      ! default = 0
                                 ! The number of open boundary segments.
-EXTEND_OBC_SEGMENTS = False     !   [Boolean] default = False
-                                ! If true, extend OBC segments. This option is used to recover
-                                ! legacy solutions dependent on an incomplete implementaion of OBCs.
-                                ! This option will be obsoleted in the future.
 MASKING_DEPTH = -9999.0         !   [m] default = -9999.0
                                 ! The depth below which to mask points as land points, for which all
                                 ! fluxes are zeroed out. MASKING_DEPTH is ignored if negative.
@@ -295,10 +248,57 @@ ROTATION = "2omegasinlat"       ! default = "2omegasinlat"
                                 !     USER - call a user modified routine.
 OMEGA = 7.2921E-05              !   [s-1] default = 7.2921E-05
                                 ! The rotation rate of the earth.
+PARALLEL_RESTARTFILES = False   !   [Boolean] default = False
+                                ! If true, each processor writes its own restart file,
+                                ! otherwise a single restart file is generated
+
+! === module MOM_tracer_registry ===
+
+! === module MOM_restart ===
+RESTARTFILE = "MOM.res"         ! default = "MOM.res"
+                                ! The name-root of the restart file.
+LARGE_FILE_SUPPORT = True       !   [Boolean] default = True
+                                ! If true, use the file-size limits with NetCDF large
+                                ! file support (4Gb), otherwise the limit is 2Gb.
+MAX_FIELDS = 100                ! default = 100
+                                ! The maximum number of restart fields that can be used.
+RESTART_CHECKSUMS_REQUIRED = True !   [Boolean] default = True
+                                ! If true, require the restart checksums to match and error out otherwise.
+                                ! Users may want to avoid this comparison if for example the restarts are
+                                ! made from a run with a different mask_table than the current run,
+                                ! in which case the checksums will not match and cause crash.
+
+! === module MOM_tracer_flow_control ===
+USE_USER_TRACER_EXAMPLE = False !   [Boolean] default = False
+                                ! If true, use the USER_tracer_example tracer package.
+USE_DOME_TRACER = False         !   [Boolean] default = False
+                                ! If true, use the DOME_tracer tracer package.
+USE_ISOMIP_TRACER = False       !   [Boolean] default = False
+                                ! If true, use the ISOMIP_tracer tracer package.
+USE_IDEAL_AGE_TRACER = False    !   [Boolean] default = False
+                                ! If true, use the ideal_age_example tracer package.
+USE_REGIONAL_DYES = False       !   [Boolean] default = False
+                                ! If true, use the regional_dyes tracer package.
+USE_OIL_TRACER = False          !   [Boolean] default = False
+                                ! If true, use the oil_tracer tracer package.
+USE_ADVECTION_TEST_TRACER = False !   [Boolean] default = False
+                                ! If true, use the advection_test_tracer tracer package.
+USE_OCMIP2_CFC = False          !   [Boolean] default = False
+                                ! If true, use the MOM_OCMIP2_CFC tracer package.
+USE_generic_tracer = False      !   [Boolean] default = False
+                                ! If true and _USE_GENERIC_TRACER is defined as a
+                                ! preprocessor macro, use the MOM_generic_tracer packages.
+USE_PSEUDO_SALT_TRACER = False  !   [Boolean] default = False
+                                ! If true, use the pseudo salt tracer, typically run as a diagnostic.
+USE_BOUNDARY_IMPULSE_TRACER = False !   [Boolean] default = False
+                                ! If true, use the boundary impulse tracer.
+USE_DYED_OBC_TRACER = False     !   [Boolean] default = False
+                                ! If true, use the dyed_obc_tracer tracer package.
 
 ! === module MOM_coord_initialization ===
 COORD_CONFIG = "none"           !
                                 ! This specifies how layers are to be defined:
+                                !     ALE or none - used to avoid defining layers in ALE mode
                                 !     file - read coordinate information from the file
                                 !       specified by (COORD_FILE).
                                 !     BFB - Custom coords for buoyancy-forced basin case
@@ -314,6 +314,8 @@ COORD_CONFIG = "none"           !
                                 !     ts_profile - use temperature and salinity profiles
                                 !       (read from COORD_FILE) to set layer densities.
                                 !     USER - call a user modified routine.
+GFS = 9.8                       !   [m s-2] default = 9.8
+                                ! The reduced gravity at the free surface.
 
 ! === module MOM_grid ===
 ! Parameters providing information about the lateral grid.
@@ -332,18 +334,21 @@ THICKNESS_CONFIG = "uniform"    !
                                 !     coord - determined by ALE coordinate.
                                 !     uniform - uniform thickness layers evenly distributed
                                 !       between the surface and MAXIMUM_DEPTH.
+                                !     list - read a list of positive interface depths.
                                 !     DOME - use a slope and channel configuration for the
                                 !       DOME sill-overflow test case.
                                 !     ISOMIP - use a configuration for the
                                 !       ISOMIP test case.
                                 !     benchmark - use the benchmark test case thicknesses.
+                                !     Neverland - use the Neverland test case thicknesses.
                                 !     search - search a density profile for the interface
                                 !       densities. This is not yet implemented.
                                 !     circle_obcs - the circle_obcs test case is used.
                                 !     DOME2D - 2D version of DOME initialization.
-                                !     adjustment2d - TBD AJA.
-                                !     sloshing - TBD AJA.
-                                !     seamount - TBD AJA.
+                                !     adjustment2d - 2D lock exchange thickness ICs.
+                                !     sloshing - sloshing gravity thickness ICs.
+                                !     seamount - no motion test with seamount ICs.
+                                !     dumbbell - sloshing channel ICs.
                                 !     soliton - Equatorial Rossby soliton.
                                 !     rossby_front - a mixed layer front in thermal wind balance.
                                 !     USER - call a user modified routine.
@@ -383,8 +388,11 @@ DIAG_COORDS = "z Z ZSTAR"       ! default = "z Z ZSTAR"
                                 ! A list of string tuples associating diag_table modules to
                                 ! a coordinate definition used for diagnostics. Each string
                                 ! is of the form "MODULE_SUFFIX PARAMETER_SUFFIX COORDINATE_NAME".
-DIAG_MISVAL = -1.0E+34          !   [not defined] default = -1.0E+34
+DIAG_MISVAL = 1.0E+20           !   [not defined] default = 1.0E+20
                                 ! Set the default missing value to use for diagnostics.
+DIAG_AS_CHKSUM = False          !   [Boolean] default = False
+                                ! Instead of writing diagnostics to the diag manager, write
+                                ! a textfile containing the checksum (bitcount) of the array.
 AVAILABLE_DIAGS_FILE = "available_diags.000000" ! default = "available_diags.000000"
                                 ! A file into which to write a list of all available
                                 ! ocean diagnostics that can be included in a diag_table.
@@ -488,6 +496,12 @@ HTBL_SHELF = 1.0                !   [m] default = 1.0
 KV = 1.0                        !   [m2 s-1]
                                 ! The background kinematic viscosity in the interior.
                                 ! The molecular value, ~1e-6 m2 s-1, may be used.
+ADD_KV_SLOW = False             !   [Boolean] default = False
+                                ! If true, the background vertical viscosity in the interior
+                                ! (i.e., tidal + background + shear + convenction) is addded
+                                ! when computing the coupling coefficient. The purpose of this
+                                ! flag is to be able to recover previous answers and it will likely
+                                ! be removed in the future since this option should always be true.
 KV_BBL_MIN = 1.0                !   [m2 s-1] default = 1.0
                                 ! The minimum viscosities in the bottom boundary layer.
 KV_TBL_MIN = 1.0                !   [m2 s-1] default = 1.0
@@ -605,8 +619,24 @@ ANALYTIC_FV_PGF = True          !   [Boolean] default = True
 
 ! === module MOM_PressureForce_AFV ===
 MASS_WEIGHT_IN_PRESSURE_GRADIENT = False !   [Boolean] default = False
-                                ! If true, use mass weighting when interpolation T/S for
-                                ! top/bottom integrals in AFV pressure gradient calculation.
+                                ! If true, use mass weighting when interpolating T/S for
+                                ! integrals near the bathymetry in AFV pressure gradient
+                                ! calculations.
+RECONSTRUCT_FOR_PRESSURE = False !   [Boolean] default = False
+                                ! If True, use vertical reconstruction of T & S within
+                                ! the integrals of the FV pressure gradient calculation.
+                                ! If False, use the constant-by-layer algorithm.
+                                ! The default is set by USE_REGRIDDING.
+PRESSURE_RECONSTRUCTION_SCHEME = 1 ! default = 1
+                                ! Order of vertical reconstruction of T/S to use in the
+                                ! integrals within the FV pressure gradient calculation. 0: PCM or no reconstruction.
+                                !  1: PLM reconstruction.
+                                !  2: PPM reconstruction.
+BOUNDARY_EXTRAPOLATION_PRESSURE = True !   [Boolean] default = True
+                                ! If true, the reconstruction of T & S for pressure in
+                                ! boundary cells is extrapolated, rather than using PCM
+                                ! in these cells. If true, the same order polynomial is
+                                ! used as is used for the interior cells.
 
 ! === module MOM_hor_visc ===
 LAPLACIAN = False               !   [Boolean] default = False
@@ -633,6 +663,12 @@ BOUND_AH = True                 !   [Boolean] default = True
 BETTER_BOUND_AH = True          !   [Boolean] default = True
                                 ! If true, the biharmonic coefficient is locally limited
                                 ! to be stable with a better bounding than just BOUND_AH.
+USE_LAND_MASK_FOR_HVISC = False !   [Boolean] default = False
+                                ! If true, use Use the land mask for the computation of thicknesses
+                                ! at velocity locations. This eliminates the dependence on arbitrary
+                                ! values over land or outside of the domain. Default is False in order to
+                                ! maintain answers with legacy experiments but should be changed to True
+                                ! for new experiments.
 HORVISC_BOUND_COEF = 0.8        !   [nondim] default = 0.8
                                 ! The nondimensional coefficient of the ratio of the
                                 ! viscosity bounds to the theoretical maximum for
@@ -646,16 +682,6 @@ DIRECT_STRESS = False           !   [Boolean] default = False
                                 ! If true, the wind stress is distributed over the
                                 ! topmost HMIX_STRESS of fluid (like in HYCOM), and KVML
                                 ! may be set to a very small value.
-U_TRUNC_FILE = ""               ! default = ""
-                                ! The absolute path to a file into which the accelerations
-                                ! leading to zonal velocity truncations are written.
-                                ! Undefine this for efficiency if this diagnostic is not
-                                ! needed.
-V_TRUNC_FILE = ""               ! default = ""
-                                ! The absolute path to a file into which the accelerations
-                                ! leading to meridional velocity truncations are written.
-                                ! Undefine this for efficiency if this diagnostic is not
-                                ! needed.
 HARMONIC_VISC = False           !   [Boolean] default = False
                                 ! If true, use the harmonic mean thicknesses for
                                 ! calculating the vertical viscosity.
@@ -694,6 +720,15 @@ CFL_TRUNCATE_RAMP_TIME = 0.0    !   [s] default = 0.0
 CFL_TRUNCATE_START = 0.0        !   [nondim] default = 0.0
                                 ! The start value of the truncation CFL number used when
                                 ! ramping up CFL_TRUNC.
+STOKES_MIXING_COMBINED = False  !   [Boolean] default = False
+                                ! Flag to use Stokes drift Mixing via the Lagrangian
+                                !  current (Eulerian plus Stokes drift).
+                                !  Still needs work and testing, so not recommended for use.
+VEL_UNDERFLOW = 0.0             !   [m s-1] default = 0.0
+                                ! A negligibly small velocity magnitude below which velocity
+                                ! components are set to 0.  A reasonable value might be
+                                ! 1e-30 m/s, which is less than an Angstrom divided by
+                                ! the age of the universe.
 
 ! === module MOM_thickness_diffuse ===
 KHTH = 0.0                      !   [m2 s-1] default = 0.0
@@ -772,7 +807,13 @@ DIFFUSE_ML_TO_INTERIOR = False  !   [Boolean] default = False
 CHECK_DIFFUSIVE_CFL = False     !   [Boolean] default = False
                                 ! If true, use enough iterations the diffusion to ensure
                                 ! that the diffusive equivalent of the CFL limit is not
-                                ! violated.  If false, always use 1 iteration.
+                                ! violated.  If false, always use the greater of 1 or
+                                ! MAX_TR_DIFFUSION_CFL iteration.
+MAX_TR_DIFFUSION_CFL = -1.0     !   [nondim] default = -1.0
+                                ! If positive, locally limit the along-isopycnal tracer
+                                ! diffusivity to keep the diffusive CFL locally at or
+                                ! below this value.  The number of diffusive iterations
+                                ! is often this value or the next greater integer.
 
 ! === module MOM_neutral_diffusion ===
 ! This module implements neutral diffusion of tracers
@@ -781,6 +822,44 @@ USE_NEUTRAL_DIFFUSION = False   !   [Boolean] default = False
 OBSOLETE_DIAGNOSTIC_IS_FATAL = True !   [Boolean] default = True
                                 ! If an obsolete diagnostic variable appears in the diag_table
                                 ! then cause a FATAL error rather than issue a WARNING.
+
+! === module MOM_sum_output ===
+CALCULATE_APE = True            !   [Boolean] default = True
+                                ! If true, calculate the available potential energy of
+                                ! the interfaces.  Setting this to false reduces the
+                                ! memory footprint of high-PE-count models dramatically.
+WRITE_STOCKS = True             !   [Boolean] default = True
+                                ! If true, write the integrated tracer amounts to stdout
+                                ! when the energy files are written.
+MAXTRUNC = 0                    !   [truncations save_interval-1] default = 0
+                                ! The run will be stopped, and the day set to a very
+                                ! large value if the velocity is truncated more than
+                                ! MAXTRUNC times between energy saves.  Set MAXTRUNC to 0
+                                ! to stop if there is any truncation of velocities.
+MAX_ENERGY = 0.0                !   [m2 s-2] default = 0.0
+                                ! The maximum permitted average energy per unit mass; the
+                                ! model will be stopped if there is more energy than
+                                ! this.  If zero or negative, this is set to 10*MAXVEL^2.
+ENERGYFILE = "ocean.stats"      ! default = "ocean.stats"
+                                ! The file to use to write the energies and globally
+                                ! summed diagnostics.
+DATE_STAMPED_STDOUT = True      !   [Boolean] default = True
+                                ! If true, use dates (not times) in messages to stdout
+TIMEUNIT = 8.64E+04             !   [s] default = 8.64E+04
+                                ! The time unit in seconds a number of input fields
+READ_DEPTH_LIST = False         !   [Boolean] default = False
+                                ! Read the depth list from a file if it exists or
+                                ! create that file otherwise.
+DEPTH_LIST_MIN_INC = 1.0E-10    !   [m] default = 1.0E-10
+                                ! The minimum increment between the depths of the
+                                ! entries in the depth-list file.
+ENERGYSAVEDAYS = 1.0            !   [days] default = 1.0
+                                ! The interval in units of TIMEUNIT between saves of the
+                                ! energies of the run and other globally summed diagnostics.
+ENERGYSAVEDAYS_GEOMETRIC = 0.0  !   [days] default = 0.0
+                                ! The starting interval in units of TIMEUNIT for the first call
+                                ! to save the energies of the run and other globally summed diagnostics.
+                                ! The interval increases by a factor of 2. after each call to write_energy.
 
 ! === module MOM_surface_forcing ===
 VARIABLE_WINDS = True           !   [Boolean] default = True
@@ -813,37 +892,40 @@ READ_GUST_2D = False            !   [Boolean] default = False
 ! === module MOM_restart ===
 ICE_SHELF = False               !   [Boolean] default = False
                                 ! If true, enables the ice shelf model.
+USE_WAVES = False               !   [Boolean] default = False
+                                ! If true, enables surface wave modules.
+LA_DEPTH_RATIO = 0.04           !   [nondim] default = 0.04
+                                ! The depth (normalized by BLD) to average Stokes drift over in
+                                !  Lanmguir number calculation, where La = sqrt(ust/Stokes).
 
-! === module MOM_sum_output ===
-CALCULATE_APE = True            !   [Boolean] default = True
-                                ! If true, calculate the available potential energy of
-                                ! the interfaces.  Setting this to false reduces the
-                                ! memory footprint of high-PE-count models dramatically.
-WRITE_STOCKS = True             !   [Boolean] default = True
-                                ! If true, write the integrated tracer amounts to stdout
-                                ! when the energy files are written.
-MAXTRUNC = 0                    !   [truncations save_interval-1] default = 0
-                                ! The run will be stopped, and the day set to a very
-                                ! large value if the velocity is truncated more than
-                                ! MAXTRUNC times between energy saves.  Set MAXTRUNC to 0
-                                ! to stop if there is any truncation of velocities.
-MAX_ENERGY = 0.0                !   [m2 s-2] default = 0.0
-                                ! The maximum permitted average energy per unit mass; the
-                                ! model will be stopped if there is more energy than
-                                ! this.  If zero or negative, this is set to 10*MAXVEL^2.
-ENERGYFILE = "ocean.stats"      ! default = "ocean.stats"
-                                ! The file to use to write the energies and globally
-                                ! summed diagnostics.
-DATE_STAMPED_STDOUT = True      !   [Boolean] default = True
-                                ! If true, use dates (not times) in messages to stdout
-TIMEUNIT = 8.64E+04             !   [s] default = 8.64E+04
-                                ! The time unit in seconds a number of input fields
-READ_DEPTH_LIST = False         !   [Boolean] default = False
-                                ! Read the depth list from a file if it exists or
-                                ! create that file otherwise.
-DEPTH_LIST_MIN_INC = 1.0E-10    !   [m] default = 1.0E-10
-                                ! The minimum increment between the depths of the
-                                ! entries in the depth-list file.
+! === module MOM_main (MOM_driver) ===
+DT_FORCING = 8.64E+04           !   [s] default = 8.64E+04
+                                ! The time step for changing forcing, coupling with other
+                                ! components, or potentially writing certain diagnostics.
+                                ! The default value is given by DT.
+DAYMAX = 1.0                    !   [days]
+                                ! The final time of the whole simulation, in units of
+                                ! TIMEUNIT seconds.  This also sets the potential end
+                                ! time of the present run segment if the end time is
+                                ! not set via ocean_solo_nml in input.nml.
+SINGLE_STEPPING_CALL = True     !   [Boolean] default = True
+                                ! If true, advance the state of MOM with a single step
+                                ! including both dynamics and thermodynamics.  If false
+                                ! the two phases are advanced with separate calls.
+RESTART_CONTROL = 1             ! default = 1
+                                ! An integer whose bits encode which restart files are
+                                ! written. Add 2 (bit 1) for a time-stamped file, and odd
+                                ! (bit 0) for a non-time-stamped file. A non-time-stamped
+                                ! restart file is saved at the end of the run segment
+                                ! for any non-negative value.
+RESTINT = 0.0                   !   [days] default = 0.0
+                                ! The interval between saves of the restart file in units
+                                ! of TIMEUNIT.  Use 0 (the default) to not save
+                                ! incremental restart files at all.
+WRITE_CPU_STEPS = 1000          ! default = 1000
+                                ! The number of coupled timesteps between writing the cpu
+                                ! time. If this is not positive, do not check cpu time, and
+                                ! the segment run-length can not be set via an elapsed CPU time.
 
 ! === module MOM_write_cputime ===
 MAXCPU = -1.0                   !   [wall-clock seconds] default = -1.0
@@ -858,39 +940,9 @@ MAXCPU = -1.0                   !   [wall-clock seconds] default = -1.0
 CPU_TIME_FILE = "CPU_stats"     ! default = "CPU_stats"
                                 ! The file into which CPU time is written.
 
-! === module MOM_main (MOM_driver) ===
-DT_FORCING = 8.64E+04           !   [s] default = 8.64E+04
-                                ! The time step for changing forcing, coupling with other
-                                ! components, or potentially writing certain diagnostics.
-                                ! The default value is given by DT.
-DAYMAX = 1.0                    !   [days]
-                                ! The final time of the whole simulation, in units of
-                                ! TIMEUNIT seconds.  This also sets the potential end
-                                ! time of the present run segment if the end time is
-                                ! not set via ocean_solo_nml in input.nml.
-RESTART_CONTROL = 1             ! default = 1
-                                ! An integer whose bits encode which restart files are
-                                ! written. Add 2 (bit 1) for a time-stamped file, and odd
-                                ! (bit 0) for a non-time-stamped file. A non-time-stamped
-                                ! restart file is saved at the end of the run segment
-                                ! for any non-negative value.
-RESTINT = 0.0                   !   [days] default = 0.0
-                                ! The interval between saves of the restart file in units
-                                ! of TIMEUNIT.  Use 0 (the default) to not save
-                                ! incremental restart files at all.
-ENERGYSAVEDAYS = 1.0            !   [days] default = 1.0
-                                ! The interval in units of TIMEUNIT between saves of the
-                                ! energies of the run and other globally summed diagnostics.
-
 ! === module MOM_file_parser ===
 SEND_LOG_TO_STDOUT = False      !   [Boolean] default = False
                                 ! If true, all log messages are also sent to stdout.
-REPORT_UNUSED_PARAMS = False    !   [Boolean] default = False
-                                ! If true, report any parameter lines that are not used
-                                ! in the run.
-FATAL_UNUSED_PARAMS = False     !   [Boolean] default = False
-                                ! If true, kill the run if there are any unused
-                                ! parameters.
 DOCUMENT_FILE = "MOM_parameter_doc" ! default = "MOM_parameter_doc"
                                 ! The basename for files where run-time parameters, their
                                 ! settings, units and defaults are documented. Blank will
